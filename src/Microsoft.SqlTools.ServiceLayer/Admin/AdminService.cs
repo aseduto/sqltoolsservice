@@ -3,16 +3,15 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.ServiceLayer.Admin.Contracts;
-using Microsoft.SqlTools.ServiceLayer.Connection;
-using Microsoft.SqlTools.ServiceLayer.Hosting;
 using System;
+using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.SqlServer.Management.Smo;
-using System.Collections.Concurrent;
-using Microsoft.SqlTools.ServiceLayer.Utility;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.ServiceLayer.Admin.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Connection;
 
 namespace Microsoft.SqlTools.ServiceLayer.Admin
 {
@@ -66,7 +65,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin
         /// <summary>
         /// Initializes the service instance
         /// </summary>
-        public void InitializeService(ServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost)
         {
             serviceHost.SetRequestHandler(CreateDatabaseRequest.Type, HandleCreateDatabaseRequest);
             serviceHost.SetRequestHandler(CreateLoginRequest.Type, HandleCreateLoginRequest);
@@ -77,7 +76,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin
         /// <summary>
         /// Handle a request for the default database prototype info
         /// </summary>
-        public static async Task HandleDefaultDatabaseInfoRequest(
+        public static void HandleDefaultDatabaseInfoRequest(
             DefaultDatabaseInfoParams optionsParams,
             RequestContext<DefaultDatabaseInfoResponse> requestContext)
         {
@@ -92,25 +91,24 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin
                 using (var taskHelper = CreateDatabaseTaskHelper(connInfo))
                 {
                     response.DefaultDatabaseInfo = DatabaseTaskHelper.DatabasePrototypeToDatabaseInfo(taskHelper.Prototype);
-                    await requestContext.SendResult(response);
+                    requestContext.SendResult(response);
                 }
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }                
         }
 
         /// <summary>
         /// Handles a create database request
         /// </summary>
-        internal static async Task HandleCreateDatabaseRequest(
+        internal static void HandleCreateDatabaseRequest(
             CreateDatabaseParams databaseParams,
             RequestContext<CreateDatabaseResponse> requestContext)
         {
             try
             {        
-                var response = new DefaultDatabaseInfoResponse();
                 ConnectionInfo connInfo;
                 AdminService.ConnectionServiceInstance.TryFindConnection(
                     databaseParams.OwnerUri,
@@ -123,7 +121,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin
 
                     Database db = prototype.ApplyChanges();
 
-                    await requestContext.SendResult(new CreateDatabaseResponse()
+                    requestContext.SendResult(new CreateDatabaseResponse()
                     {
                         Result = true,
                         TaskId = 0
@@ -132,20 +130,20 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }         
         }
 
         /// <summary>
         /// Handle get database info request
         /// </summary>
-        internal static async Task HandleGetDatabaseInfoRequest(
+        internal static void HandleGetDatabaseInfoRequest(
             GetDatabaseInfoParams databaseParams,
             RequestContext<GetDatabaseInfoResponse> requestContext)
         {
             try
             {
-                Func<Task> requestHandler = async () =>
+                Task task = Task.Run(() =>
                 {
                     ConnectionInfo connInfo;
                     AdminService.ConnectionServiceInstance.TryFindConnection(
@@ -158,21 +156,15 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin
                         info = GetDatabaseInfo(connInfo);
                     }
 
-                    await requestContext.SendResult(new GetDatabaseInfoResponse()
+                    requestContext.SendResult(new GetDatabaseInfoResponse
                     {
                         DatabaseInfo = info
                     });
-                };
-
-                Task task = Task.Run(async () => await requestHandler()).ContinueWithOnFaulted(async t =>
-                {
-                    await requestContext.SendError(t.Exception.ToString());
-                });
-
+                }).ContinueWith(t => {requestContext.SendError(t.Exception.ToString());});
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
         
@@ -291,11 +283,11 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin
         /// <summary>
         /// Handles a create login request
         /// </summary>
-        internal static async Task HandleCreateLoginRequest(
+        internal static void HandleCreateLoginRequest(
             CreateLoginParams loginParams,
             RequestContext<CreateLoginResponse> requestContext)
         {
-            await requestContext.SendResult(new CreateLoginResponse());
+            requestContext.SendResult(new CreateLoginResponse());
         }
     }
 }

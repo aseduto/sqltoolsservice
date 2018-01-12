@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Admin.Contracts
 {
@@ -21,7 +21,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin.Contracts
         public int TaskId { get; set; }
     }
 
-    public class CreateLoginRequest
+    public static class CreateLoginRequest
     {
         public static readonly
             RequestType<CreateLoginParams, CreateLoginResponse> Type =
