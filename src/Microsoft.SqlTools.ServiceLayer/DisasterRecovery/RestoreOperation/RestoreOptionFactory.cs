@@ -5,11 +5,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.SqlServer.Management.Smo;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts;
-using Microsoft.SqlTools.ServiceLayer.Utility;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery.RestoreOperation
 {

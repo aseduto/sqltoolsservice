@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 using Microsoft.SqlTools.ServiceLayer.TaskServices;
 using Microsoft.SqlTools.ServiceLayer.Utility;
 
@@ -43,7 +43,7 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts
     /// <summary>
     /// Request class for backup execution
     /// </summary>
-    public class BackupRequest
+    public static class BackupRequest
     {
         public static readonly
             RequestType<BackupParams, BackupResponse> Type =

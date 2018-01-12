@@ -4,10 +4,9 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SqlTools.Hosting.Contracts;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery.RestoreOperation;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
 {

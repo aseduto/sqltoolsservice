@@ -5,7 +5,9 @@
 using System;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Admin;
 using Microsoft.SqlTools.ServiceLayer.Admin.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Connection;
@@ -14,7 +16,6 @@ using Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery.RestoreOperation;
 using Microsoft.SqlTools.ServiceLayer.FileBrowser;
 using Microsoft.SqlTools.ServiceLayer.TaskServices;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
 {
@@ -101,7 +102,7 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
         /// <summary>
         /// Initializes the service instance
         /// </summary>
-        public void InitializeService(IProtocolEndpoint serviceHost)
+        public void InitializeService(IServiceHost serviceHost)
         {
             // Get database info
             serviceHost.SetRequestHandler(BackupConfigInfoRequest.Type, HandleBackupConfigInfoRequest);
@@ -132,7 +133,7 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
         /// <param name="optionsParams"></param>
         /// <param name="requestContext"></param>
         /// <returns></returns>
-        internal async Task HandleBackupConfigInfoRequest(
+        internal void HandleBackupConfigInfoRequest(
             DefaultDatabaseInfoParams optionsParams,
             RequestContext<BackupConfigInfoResponse> requestContext)
         {
@@ -159,18 +160,18 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
                     }
                 }
 
-                await requestContext.SendResult(response);
+                requestContext.SendResult(response);
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
         /// <summary>
         /// Handles a restore request
         /// </summary>
-        internal async Task HandleCancelRestorePlanRequest(
+        internal void HandleCancelRestorePlanRequest(
             RestoreParams restoreParams,
             RequestContext<bool> requestContext)
         {
@@ -178,19 +179,19 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
             try
             {
                 result = this.restoreDatabaseService.CancelRestorePlan(restoreParams);
-                await requestContext.SendResult(result);
+                requestContext.SendResult(result);
             }
             catch (Exception ex)
             {
                 Logger.Write(LogLevel.Error, "Failed to cancel restore session. error: " + ex.Message);
-                await requestContext.SendResult(result);
+                requestContext.SendResult(result);
             }
         }
 
         /// <summary>
         /// Handles a restore request
         /// </summary>
-        internal async Task HandleRestorePlanRequest(
+        internal void HandleRestorePlanRequest(
             RestoreParams restoreParams,
             RequestContext<RestorePlanResponse> requestContext)
         {
@@ -217,13 +218,13 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
                     response.CanRestore = false;
                     response.ErrorMessage = SR.RestoreNotSupported;
                 }
-                await requestContext.SendResult(response);
+                requestContext.SendResult(response);
             }
             catch (Exception ex)
             {
                 response.CanRestore = false;
                 response.ErrorMessage = ex.Message;
-                await requestContext.SendResult(response);
+                requestContext.SendResult(response);
             }
         }
 

@@ -4,16 +4,14 @@
 //
 
 using System;
+using System.Collections.Concurrent;
 using System.Linq;
-using System.Data.Common;
 using System.Data.SqlClient;
 using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
 using Microsoft.SqlTools.ServiceLayer.Connection;
-using Microsoft.SqlTools.ServiceLayer.Connection.ReliableConnection;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts;
-using Microsoft.SqlTools.Utility;
-using System.Collections.Concurrent;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery.RestoreOperation

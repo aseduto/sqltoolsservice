@@ -4,7 +4,7 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts
 {
@@ -34,7 +34,7 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts
         public string ErrorMessage { get; set; }
     }
 
-    public class RestoreConfigInfoRequest
+    public static class RestoreConfigInfoRequest
     {
         public static readonly
             RequestType<RestoreConfigInfoRequestParams, RestoreConfigInfoResponse> Type =

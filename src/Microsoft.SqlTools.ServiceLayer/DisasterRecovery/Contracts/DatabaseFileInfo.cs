@@ -4,7 +4,7 @@
 //
 
 using System.Linq;
-using Microsoft.SqlTools.Utility;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts
 {

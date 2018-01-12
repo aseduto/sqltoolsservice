@@ -4,7 +4,7 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts
 {
@@ -81,14 +81,14 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts
         public Dictionary<string, RestorePlanDetailInfo> PlanDetails { get; set; }
     }
 
-    public class RestorePlanRequest
+    public static class RestorePlanRequest
     {
         public static readonly
             RequestType<RestoreParams, RestorePlanResponse> Type =
                 RequestType<RestoreParams, RestorePlanResponse>.Create("disasterrecovery/restoreplan");
     }
 
-    public class CancelRestorePlanRequest
+    public static class CancelRestorePlanRequest
     {
         public static readonly
             RequestType<RestoreParams, bool> Type =
