@@ -5,7 +5,7 @@
 
 using System;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using Microsoft.SqlTools.Utility;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Formatter
 {
@@ -18,13 +18,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Formatter
     internal abstract class ASTNodeFormatterFactoryT<T> : ASTNodeFormatterFactory
         where T : SqlCodeObject
     {
-        public override Type SupportedNodeType
-        {
-            get
-            {
-                return typeof(T);
-            }
-        }
+        public override Type SupportedNodeType => typeof(T);
 
         public override ASTNodeFormatter Create(FormatterVisitor visitor, SqlCodeObject codeObject)
         {

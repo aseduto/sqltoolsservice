@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 
@@ -12,7 +12,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Formatter.Contracts
     /// <summary>
     /// A formatting request to process an entire document
     /// </summary>
-    public class DocumentFormattingRequest
+    public static class DocumentFormattingRequest
     {
         public static readonly
             RequestType<DocumentFormattingParams, TextEdit[]> Type =
@@ -22,7 +22,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Formatter.Contracts
     /// <summary>
     /// A formatting request to process a specific range inside a document
     /// </summary>
-    public class DocumentRangeFormattingRequest
+    public static class DocumentRangeFormattingRequest
     {
         public static readonly
             RequestType<DocumentRangeFormattingParams, TextEdit[]> Type =
@@ -32,7 +32,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Formatter.Contracts
     /// <summary>
     /// A formatting request to handle a user typing, giving a chance to update the text based on this
     /// </summary>
-    public class DocumentOnTypeFormattingRequest
+    public static class DocumentOnTypeFormattingRequest
     {
         public static readonly
             RequestType<DocumentOnTypeFormattingParams, TextEdit[]> Type =

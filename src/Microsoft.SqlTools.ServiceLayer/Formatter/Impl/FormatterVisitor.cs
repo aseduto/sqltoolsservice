@@ -9,7 +9,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using Microsoft.SqlTools.Extensibility;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Formatter
 {

@@ -3,11 +3,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using System;
 using System.Composition;
 using Babel.ParserGenerator;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using Microsoft.SqlTools.Utility;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Formatter
 {

@@ -5,7 +5,7 @@
 
 using System.Composition;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using Microsoft.SqlTools.Utility;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Formatter
 {

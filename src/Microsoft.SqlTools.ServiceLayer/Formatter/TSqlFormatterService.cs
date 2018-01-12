@@ -9,22 +9,22 @@ using System.Composition;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
-using Microsoft.SqlTools.Extensibility;
-using Microsoft.SqlTools.Hosting;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Formatter.Contracts;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Formatter
 {
 
     [Export(typeof(IHostedService))]
-    public class TSqlFormatterService : HostedService<TSqlFormatterService>, IComposableService
+    public class TSqlFormatterService : HostedService<TSqlFormatterService>
     {
         private FormatterSettings settings;
         /// <summary>
@@ -35,13 +35,13 @@ namespace Microsoft.SqlTools.ServiceLayer.Formatter
             settings = new FormatterSettings();
         }
 
-
-
-        public override void InitializeService(IProtocolEndpoint serviceHost)
+        public override void InitializeService(IServiceHost serviceHost)
         {
             Logger.Write(LogLevel.Verbose, "TSqlFormatter initialized");
-            serviceHost.SetRequestHandler(DocumentFormattingRequest.Type, HandleDocFormatRequest);
-            serviceHost.SetRequestHandler(DocumentRangeFormattingRequest.Type, HandleDocRangeFormatRequest);
+            
+            serviceHost.SetAsyncRequestHandler(DocumentFormattingRequest.Type, HandleDocFormatRequest);
+            serviceHost.SetAsyncRequestHandler(DocumentRangeFormattingRequest.Type, HandleDocRangeFormatRequest);
+            
             WorkspaceService?.RegisterConfigChangeCallback(HandleDidChangeConfigurationNotification);
         }
 
@@ -76,10 +76,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Formatter
 
         public async Task HandleDocFormatRequest(DocumentFormattingParams docFormatParams, RequestContext<TextEdit[]> requestContext)
         {
-            Func<Task<TextEdit[]>> requestHandler = () =>
-            {
-                return FormatAndReturnEdits(docFormatParams);
-            };
+            Func<Task<TextEdit[]>> requestHandler = () => FormatAndReturnEdits(docFormatParams);
             await HandleRequest(requestHandler, requestContext, "HandleDocFormatRequest");
 
             DocumentStatusHelper.SendTelemetryEvent(requestContext, CreateTelemetryProps(isDocFormat: true));
@@ -131,13 +128,11 @@ namespace Microsoft.SqlTools.ServiceLayer.Formatter
 
         private bool ShouldSkipFormatting(DocumentFormattingParams docFormatParams)
         {
-            if (docFormatParams == null
-                || docFormatParams.TextDocument == null
-                || docFormatParams.TextDocument.Uri == null)
+            if (docFormatParams?.TextDocument?.Uri == null)
             {
                 return true;
             }
-            return (LanguageService != null && LanguageService.ShouldSkipNonMssqlFile(docFormatParams.TextDocument.Uri));
+            return LanguageService != null && LanguageService.ShouldSkipNonMssqlFile(docFormatParams.TextDocument.Uri);
         }
 
         private async Task<TextEdit[]> FormatAndReturnEdits(DocumentFormattingParams docFormatParams)
@@ -235,11 +230,11 @@ namespace Microsoft.SqlTools.ServiceLayer.Formatter
             try
             {
                 T result = await handler();
-                await requestContext.SendResult(result);
+                requestContext.SendResult(result);
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
