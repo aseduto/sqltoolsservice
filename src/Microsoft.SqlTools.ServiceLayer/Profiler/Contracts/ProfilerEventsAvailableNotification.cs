@@ -4,8 +4,7 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
-using Microsoft.SqlTools.ServiceLayer.Utility;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Profiler.Contracts
 {
@@ -16,7 +15,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Profiler.Contracts
         public List<ProfilerEvent> Events { get; set; }
     }
 
-    public class ProfilerEventsAvailableNotification
+    public static class ProfilerEventsAvailableNotification
     {
         public static readonly
             EventType<ProfilerEventsAvailableParams> Type =

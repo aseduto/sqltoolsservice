@@ -4,26 +4,13 @@
 //
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Collections.Specialized;
-using System.Data.SqlClient;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Xml;
 using Microsoft.SqlServer.Management.Sdk.Sfc;
-using Microsoft.SqlServer.Management.Smo;
 using Microsoft.SqlServer.Management.XEvent;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Connection;
-using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
-using Microsoft.SqlTools.ServiceLayer.Hosting;
 using Microsoft.SqlTools.ServiceLayer.Profiler.Contracts;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Profiler
 {
@@ -96,7 +83,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Profiler
         /// Service host object for sending/receiving requests/events.
         /// Internal for testing purposes.
         /// </summary>
-        internal IProtocolEndpoint ServiceHost
+        internal IServiceHost ServiceHost
         {
             get;
             set;
@@ -117,7 +104,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Profiler
         /// <summary>
         /// Handle request to start a profiling session
         /// </summary>
-        internal async Task HandleStartProfilingRequest(StartProfilingParams parameters, RequestContext<StartProfilingResult> requestContext)
+        internal void HandleStartProfilingRequest(StartProfilingParams parameters, RequestContext<StartProfilingResult> requestContext)
         {
             try
             {
@@ -139,30 +126,30 @@ namespace Microsoft.SqlTools.ServiceLayer.Profiler
                     result.ErrorMessage = SR.ProfilerConnectionNotFound;
                 }
 
-                await requestContext.SendResult(result);
+                requestContext.SendResult(result);
             }
             catch (Exception e)
             {
-                await requestContext.SendError(e);
+                requestContext.SendError(e);
             }
         }
 
         /// <summary>
         /// Handle request to stop a profiling session
         /// </summary>
-        internal async Task HandleStopProfilingRequest(StopProfilingParams parameters, RequestContext<StopProfilingResult> requestContext)
+        internal void HandleStopProfilingRequest(StopProfilingParams parameters, RequestContext<StopProfilingResult> requestContext)
         {
             try
             {
                 monitor.StopMonitoringSession(parameters.SessionId);
-                await requestContext.SendResult(new StopProfilingResult
+                requestContext.SendResult(new StopProfilingResult
                 {
                     Succeeded = true
                 });
             }
             catch (Exception e)
             {
-                await requestContext.SendError(e);
+                requestContext.SendError(e);
             } 
         }
 

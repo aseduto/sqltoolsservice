@@ -3,9 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
-using Microsoft.SqlTools.ServiceLayer.Utility;
-using Microsoft.SqlTools.Utility;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Profiler.Contracts
 {
@@ -44,7 +42,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Profiler.Contracts
     /// <summary>
     /// Start Profile request type
     /// </summary>
-    public class StartProfilingRequest
+    public static class StartProfilingRequest
     {
         /// <summary>
         /// Request definition
