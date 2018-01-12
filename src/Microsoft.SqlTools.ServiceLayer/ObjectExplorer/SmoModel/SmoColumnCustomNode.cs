@@ -6,7 +6,7 @@
 using System;
 using System.Globalization;
 using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlTools.Utility;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.SmoModel
 {

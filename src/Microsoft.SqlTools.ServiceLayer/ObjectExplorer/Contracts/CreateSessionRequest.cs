@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts
@@ -57,7 +57,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts
     /// This will create a connection to a specific server or database, register
     /// it for use in the 
     /// </summary>
-    public class CreateSessionRequest
+    public static class CreateSessionRequest
     {
         public static readonly
             RequestType<ConnectionDetails, CreateSessionResponse> Type =
@@ -67,7 +67,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts
     /// <summary>
     /// Session notification mapping entry 
     /// </summary>
-    public class CreateSessionCompleteNotification
+    public static class CreateSessionCompleteNotification
     {
         public static readonly
             EventType<SessionCreatedParameters> Type =

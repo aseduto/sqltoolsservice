@@ -12,9 +12,11 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Extensibility;
-using Microsoft.SqlTools.Hosting;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
@@ -24,8 +26,6 @@ using Microsoft.SqlTools.ServiceLayer.ObjectExplorer.SmoModel;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
 using Microsoft.SqlTools.ServiceLayer.Utility;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
-using Microsoft.SqlTools.Utility;
-using Microsoft.SqlServer.Management.Common;
 
 namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
 {
@@ -40,7 +40,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
 
         // Instance of the connection service, used to get the connection info for a given owner URI
         private ConnectionService connectionService;
-        private IProtocolEndpoint serviceHost;
+        private IServiceHost serviceHost;
         private ConcurrentDictionary<string, ObjectExplorerSession> sessionMap;
         private readonly Lazy<Dictionary<string, HashSet<ChildFactory>>> applicableNodeChildFactories;
         private IMultiServiceProvider serviceProvider;
@@ -59,7 +59,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
         public ObjectExplorerService()
         {
             sessionMap = new ConcurrentDictionary<string, ObjectExplorerSession>();
-            applicableNodeChildFactories = new Lazy<Dictionary<string, HashSet<ChildFactory>>>(() => PopulateFactories());
+            applicableNodeChildFactories = new Lazy<Dictionary<string, HashSet<ChildFactory>>>(PopulateFactories);
         }
 
         internal ConnectedBindingQueue ConnectedBindingQueue
@@ -127,15 +127,15 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
         /// Initializes the service with the service host and registers request handlers.
         /// </summary>
         /// <param name="serviceHost">The service host instance to register with</param>
-        public override void InitializeService(IProtocolEndpoint serviceHost)
+        public override void InitializeService(IServiceHost serviceHost)
         {
             Logger.Write(LogLevel.Verbose, "ObjectExplorer service initialized");
             this.serviceHost = serviceHost;
             // Register handlers for requests
-            serviceHost.SetRequestHandler(CreateSessionRequest.Type, HandleCreateSessionRequest);
-            serviceHost.SetRequestHandler(ExpandRequest.Type, HandleExpandRequest);
             serviceHost.SetRequestHandler(RefreshRequest.Type, HandleRefreshRequest);
-            serviceHost.SetRequestHandler(CloseSessionRequest.Type, HandleCloseSessionRequest);
+            serviceHost.SetAsyncRequestHandler(CreateSessionRequest.Type, HandleCreateSessionRequest);
+            serviceHost.SetAsyncRequestHandler(ExpandRequest.Type, HandleExpandRequest);
+            serviceHost.SetAsyncRequestHandler(CloseSessionRequest.Type, HandleCloseSessionRequest);
             WorkspaceService<SqlToolsSettings> workspaceService = WorkspaceService;
             if (workspaceService != null)
             {
@@ -192,7 +192,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
             }
             catch (Exception ex)
             {
-                await context.SendError(ex.ToString());
+                context.SendError(ex.ToString());
             }
 
         }
@@ -201,7 +201,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
         {
             Logger.Write(LogLevel.Verbose, "HandleExpandRequest");
 
-            Func<Task<bool>> expandNode = async () =>
+            Func<bool> expandNode = () =>
             {
                 Validate.IsNotNull(nameof(expandParams), expandParams);
                 Validate.IsNotNull(nameof(context), context);
@@ -211,7 +211,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
                 if (!sessionMap.TryGetValue(uri, out session))
                 {
                     Logger.Write(LogLevel.Verbose, $"Cannot expand object explorer node. Couldn't find session for uri. {uri} ");
-                    await serviceHost.SendEvent(ExpandCompleteNotification.Type, new ExpandResponse
+                    serviceHost.SendEvent(ExpandCompleteNotification.Type, new ExpandResponse
                     {
                         SessionId = expandParams.SessionId,
                         NodePath = expandParams.NodePath,
@@ -228,7 +228,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
             await HandleRequestAsync(expandNode, context, "HandleExpandRequest");
         }
 
-        internal async Task HandleRefreshRequest(RefreshParams refreshParams, RequestContext<bool> context)
+        internal void HandleRefreshRequest(RefreshParams refreshParams, RequestContext<bool> context)
         {
             try
             {
@@ -241,7 +241,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
                 if (!sessionMap.TryGetValue(uri, out session))
                 {
                     Logger.Write(LogLevel.Verbose, $"Cannot expand object explorer node. Couldn't find session for uri. {uri} ");
-                    await serviceHost.SendEvent(ExpandCompleteNotification.Type, new ExpandResponse
+                    serviceHost.SendEvent(ExpandCompleteNotification.Type, new ExpandResponse
                     {
                         SessionId = refreshParams.SessionId,
                         NodePath = refreshParams.NodePath,
@@ -252,11 +252,11 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
                 {
                     RunExpandTask(session, refreshParams, true);
                 }
-                await context.SendResult(true);
+                context.SendResult(true);
             }
             catch (Exception ex)
             {
-                await context.SendError(ex.ToString());
+                context.SendError(ex.ToString());
             }
         }
 
@@ -336,7 +336,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
                             ErrorMessage = result.Exception != null ? result.Exception.Message : $"Failed to create session for session id {uri}"
 
                         };
-                        await serviceHost.SendEvent(CreateSessionCompleteNotification.Type, response);
+                        serviceHost.SendEvent(CreateSessionCompleteNotification.Type, response);
                     }
                     return result;
                 }).ContinueWithOnFaulted(null);
@@ -373,7 +373,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
                     ErrorMessage = session.ErrorMessage
 
                 };
-                await serviceHost.SendEvent(CreateSessionCompleteNotification.Type, response);
+                serviceHost.SendEvent(CreateSessionCompleteNotification.Type, response);
                 return response;
             }
             return null;
@@ -527,7 +527,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
             }
         }
 
-        private async Task SendSessionFailedNotification(string uri, string errorMessage)
+        private void SendSessionFailedNotification(string uri, string errorMessage)
         {
             Logger.Write(LogLevel.Warning, $"Failed To create OE session: {errorMessage}");
             SessionCreatedParameters result = new SessionCreatedParameters()
@@ -536,7 +536,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
                 ErrorMessage = errorMessage,
                 SessionId = uri
             };
-            await serviceHost.SendEvent(CreateSessionCompleteNotification.Type, result);
+            serviceHost.SendEvent(CreateSessionCompleteNotification.Type, result);
         }
 
         private void RunExpandTask(ObjectExplorerSession session, ExpandParams expandParams, bool forceRefresh = false)
@@ -554,7 +554,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
                     cancellationTokenSource.Cancel();
                     ExpandResponse response = CreateExpandResponse(session, expandParams);
                     response.ErrorMessage = result.Exception != null ? result.Exception.Message: $"Failed to expand node: {expandParams.NodePath} in session {session.Uri}";
-                    await serviceHost.SendEvent(ExpandCompleteNotification.Type, response);
+                    serviceHost.SendEvent(ExpandCompleteNotification.Type, response);
                 }
                 return result;
             }).ContinueWithOnFaulted(null);
@@ -596,7 +596,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
             }
             else
             {
-                await serviceHost.SendEvent(ExpandCompleteNotification.Type, response);
+                serviceHost.SendEvent(ExpandCompleteNotification.Type, response);
             }
         }
 
@@ -669,11 +669,11 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
         {
             if (serviceProvider == null)
             {
-                throw new InvalidOperationException(SqlTools.Hosting.SR.ServiceProviderNotSet);
+                throw new InvalidOperationException(SR.ServiceProviderNotSet);
             }
             if (connectionService == null)
             {
-                throw new InvalidOperationException(SqlTools.Hosting.SR.ServiceProviderNotSet);
+                throw new InvalidOperationException(SR.ServiceProviderNotSet);
             }
         }
 

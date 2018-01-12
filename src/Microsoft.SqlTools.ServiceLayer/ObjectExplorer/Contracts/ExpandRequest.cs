@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts
 {
@@ -54,7 +54,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts
     /// <summary>
     /// A request to expand a 
     /// </summary>
-    public class ExpandRequest
+    public static class ExpandRequest
     {
         /// <summary>
         /// Returns children of a given node as a <see cref="NodeInfo"/> array.
@@ -67,7 +67,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts
     /// <summary>
     /// Expand notification mapping entry 
     /// </summary>
-    public class ExpandCompleteNotification
+    public static class ExpandCompleteNotification
     {
         public static readonly
             EventType<ExpandResponse> Type =

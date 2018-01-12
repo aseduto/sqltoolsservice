@@ -6,7 +6,7 @@
 using System;
 using System.Globalization;
 using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlTools.Extensibility;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Nodes;
 
 namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.SmoModel
@@ -111,13 +111,13 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.SmoModel
         {
             if (ServiceProvider == null)
             {
-                throw new InvalidOperationException(SqlTools.Hosting.SR.ServiceProviderNotSet);
+                throw new InvalidOperationException(SR.ServiceProviderNotSet);
             }
             ObjectExplorerService service = ServiceProvider.GetService<ObjectExplorerService>();
             if (service == null)
             {
                 throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, 
-                    SqlTools.Hosting.SR.ServiceNotFound, nameof(ObjectExplorerService)));
+                    SR.ServiceNotFound, nameof(ObjectExplorerService)));
             }
 
             return service;

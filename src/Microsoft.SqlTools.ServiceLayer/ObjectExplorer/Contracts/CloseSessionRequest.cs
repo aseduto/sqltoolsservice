@@ -3,8 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
-using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts
 {
@@ -44,7 +43,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts
     /// This will create a connection to a specific server or database, register
     /// it for use in the 
     /// </summary>
-    public class CloseSessionRequest
+    public static class CloseSessionRequest
     {
         public static readonly
             RequestType<CloseSessionParams, CloseSessionResponse> Type =
