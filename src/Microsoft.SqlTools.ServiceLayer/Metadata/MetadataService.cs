@@ -7,9 +7,9 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Connection;
-using Microsoft.SqlTools.ServiceLayer.Hosting;
 using Microsoft.SqlTools.ServiceLayer.Metadata.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Utility;
 
@@ -51,7 +51,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Metadata
         /// </summary>
         /// <param name="serviceHost"></param>
         /// <param name="context"></param>
-        public void InitializeService(ServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost)
         {
             serviceHost.SetRequestHandler(MetadataListRequest.Type, HandleMetadataListRequest);
             serviceHost.SetRequestHandler(TableMetadataRequest.Type, HandleGetTableRequest);
@@ -61,7 +61,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Metadata
         /// <summary>
         /// Handle a metadata query request
         /// </summary>        
-        internal async Task HandleMetadataListRequest(
+        internal void HandleMetadataListRequest(
             MetadataQueryParams metadataParams,
             RequestContext<MetadataQueryResult> requestContext)
         {
@@ -83,21 +83,21 @@ namespace Microsoft.SqlTools.ServiceLayer.Metadata
                         }
                     }
 
-                    await requestContext.SendResult(new MetadataQueryResult
+                    requestContext.SendResult(new MetadataQueryResult
                     {
                         Metadata = metadata.ToArray()
                     });
                 };
 
-                Task task = Task.Run(async () => await requestHandler()).ContinueWithOnFaulted(async t =>
+                Task task = Task.Run(async () => await requestHandler()).ContinueWithOnFaulted(t =>
                 {
-                    await requestContext.SendError(t.Exception.ToString());
+                    requestContext.SendError(t.Exception.ToString());
                 });
                 MetadataListTask = task;
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
@@ -150,14 +150,14 @@ namespace Microsoft.SqlTools.ServiceLayer.Metadata
                     }
                 }
 
-                await requestContext.SendResult(new TableMetadataResult
+                requestContext.SendResult(new TableMetadataResult
                 {
                     Columns = metadata    
                 });
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 

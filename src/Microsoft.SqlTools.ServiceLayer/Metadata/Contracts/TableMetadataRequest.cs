@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Metadata.Contracts
 {
@@ -24,10 +24,10 @@ namespace Microsoft.SqlTools.ServiceLayer.Metadata.Contracts
     /// <summary>
     /// Retreive metadata for the table described in the TableMetadataParams value
     /// </summary>
-    public class TableMetadataRequest
+    public static class TableMetadataRequest
     {
         public static readonly
             RequestType<TableMetadataParams, TableMetadataResult> Type =
-                RequestType<TableMetadataParams, TableMetadataResult>.Create("metadata/table");
+            RequestType<TableMetadataParams, TableMetadataResult>.Create("metadata/table");
     }
 }

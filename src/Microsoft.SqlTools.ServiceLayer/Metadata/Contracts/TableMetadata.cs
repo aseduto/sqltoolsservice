@@ -4,10 +4,10 @@
 //
 
 using System.Linq;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
-using Microsoft.SqlTools.Utility;
 
-namespace Microsoft.SqlTools.ServiceLayer.Metadata
+namespace Microsoft.SqlTools.ServiceLayer.Metadata.Contracts
 {
     /// <summary>
     /// Provides metadata about the table or view being edited

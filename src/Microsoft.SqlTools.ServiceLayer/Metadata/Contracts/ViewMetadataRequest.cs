@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Metadata.Contracts
 {
@@ -12,10 +12,10 @@ namespace Microsoft.SqlTools.ServiceLayer.Metadata.Contracts
     /// This message reuses the table metadata params and result since the exchanged
     /// data is the same.
     /// </summary>
-    public class ViewMetadataRequest
+    public static class ViewMetadataRequest
     {
         public static readonly
             RequestType<TableMetadataParams, TableMetadataResult> Type =
-                RequestType<TableMetadataParams, TableMetadataResult>.Create("metadata/view");
+            RequestType<TableMetadataParams, TableMetadataResult>.Create("metadata/view");
     }
 }
