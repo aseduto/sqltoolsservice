@@ -4,10 +4,10 @@
 //
 
 using System;
-using Microsoft.SqlServer.Management.SqlParser.Parser;
-using Microsoft.SqlTools.Utility;
-using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 using System.Collections.Generic;
+using Microsoft.SqlServer.Management.SqlParser.Parser;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
+using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.LanguageServices.Completion
 {

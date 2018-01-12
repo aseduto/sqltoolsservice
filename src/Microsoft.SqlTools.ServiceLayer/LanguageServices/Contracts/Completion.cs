@@ -4,19 +4,19 @@
 //
 
 using System.Diagnostics;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts
 {
-    public class CompletionRequest
+    public static class CompletionRequest
     {
         public static readonly
             RequestType<TextDocumentPosition, CompletionItem[]> Type =
             RequestType<TextDocumentPosition, CompletionItem[]>.Create("textDocument/completion");
     }
 
-    public class CompletionResolveRequest
+    public static class CompletionResolveRequest
     {
         public static readonly
             RequestType<CompletionItem, CompletionItem> Type =

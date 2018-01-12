@@ -4,13 +4,12 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 {
@@ -26,7 +25,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         /// <param name="scriptFile"></param>
         /// <param name="semanticMarkers"></param>
         /// <param name="eventContext"></param>
-        internal static async Task PublishScriptDiagnostics(
+        internal static void PublishScriptDiagnostics(
             ScriptFile scriptFile,
             ScriptFileMarker[] semanticMarkers,
             EventContext eventContext)
@@ -37,7 +36,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 
             // Always send syntax and semantic errors.  We want to 
             // make sure no out-of-date markers are being displayed.
-            await eventContext.SendEvent(
+            eventContext.SendEvent(
                 PublishDiagnosticsNotification.Type,
                 new PublishDiagnosticsNotification
                 {
@@ -55,7 +54,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         /// <param name="scriptFile"></param>
         /// <param name="semanticMarkers"></param>
         /// <param name="eventContext"></param>
-        internal static async Task ClearScriptDiagnostics(
+        internal static void ClearScriptDiagnostics(
             string uri,
             EventContext eventContext)
         {
@@ -63,7 +62,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
             Validate.IsNotNull(nameof(eventContext), eventContext);
             // Always send syntax and semantic errors.  We want to 
             // make sure no out-of-date markers are being displayed.
-            await eventContext.SendEvent(
+            eventContext.SendEvent(
                 PublishDiagnosticsNotification.Type,
                 new PublishDiagnosticsNotification
                 {

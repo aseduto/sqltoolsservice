@@ -4,9 +4,9 @@
 //
 
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
-using Microsoft.SqlTools.Utility;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
@@ -14,7 +14,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
     /// <summary>
     /// Helper class to send events to the client
     /// </summary>
-    public class DocumentStatusHelper
+    public static class DocumentStatusHelper
     {
         public const string DefinitionRequested = "DefinitionRequested";
         public const string DefinitionRequestCompleted = "DefinitionRequestCompleted";
@@ -24,12 +24,12 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         /// </summary>
         public static void SendStatusChange<T>(RequestContext<T> requestContext, TextDocumentPosition textDocumentPosition, string status)
         {
-            Task.Factory.StartNew(async () =>
+            Task.Factory.StartNew(() =>
             {
                 if (requestContext != null)
                 {
                     string ownerUri = textDocumentPosition != null && textDocumentPosition.TextDocument != null ? textDocumentPosition.TextDocument.Uri : "";
-                    await requestContext.SendEvent(StatusChangedNotification.Type, new StatusChangeParams()
+                    requestContext.SendEvent(StatusChangedNotification.Type, new StatusChangeParams()
                     {
                         OwnerUri = ownerUri,
                         Status = status
@@ -45,9 +45,9 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         {
             Validate.IsNotNull(nameof(requestContext), requestContext);
             Validate.IsNotNullOrWhitespaceString(nameof(telemetryEvent), telemetryEvent);
-            Task.Factory.StartNew(async () =>
+            Task.Factory.StartNew(() =>
             {
-                await requestContext.SendEvent(TelemetryNotification.Type, new TelemetryParams()
+                requestContext.SendEvent(TelemetryNotification.Type, new TelemetryParams()
                 {
                     Params = new TelemetryProperties
                     {
@@ -65,9 +65,9 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
             Validate.IsNotNull(nameof(requestContext), requestContext);
             Validate.IsNotNull(nameof(telemetryProps), telemetryProps);
             Validate.IsNotNullOrWhitespaceString("telemetryProps.EventName", telemetryProps.EventName);
-            Task.Factory.StartNew(async () =>
+            Task.Factory.StartNew(() =>
             {
-                await requestContext.SendEvent(TelemetryNotification.Type, new TelemetryParams()
+                requestContext.SendEvent(TelemetryNotification.Type, new TelemetryParams()
                 {
                     Params = telemetryProps
                 });

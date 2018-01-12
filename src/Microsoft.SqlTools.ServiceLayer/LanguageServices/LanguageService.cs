@@ -16,20 +16,20 @@ using Microsoft.SqlServer.Management.SqlParser.Common;
 using Microsoft.SqlServer.Management.SqlParser.Intellisense;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
 using Microsoft.SqlServer.Management.SqlParser.SqlCodeDom;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
-using Microsoft.SqlTools.ServiceLayer.Hosting;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Completion;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
-using Microsoft.SqlTools.ServiceLayer.QueryExecution;
 using Microsoft.SqlTools.ServiceLayer.Scripting;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
 using Microsoft.SqlTools.ServiceLayer.Utility;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
-using Microsoft.SqlTools.Utility;
 using Location = Microsoft.SqlTools.ServiceLayer.Workspace.Contracts.Location;
+using ServiceHost = Microsoft.SqlTools.ServiceLayer.Hosting.ServiceHost;
 
 namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 {
@@ -97,21 +97,9 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         /// <summary>
         /// Gets a mapping dictionary for SQL file URIs to ScriptParseInfo objects
         /// </summary>
-        internal Dictionary<string, ScriptParseInfo> ScriptParseInfoMap
-        {
-            get
-            {
-                return this.scriptParseInfoMap.Value;
-            }
-        }
+        internal Dictionary<string, ScriptParseInfo> ScriptParseInfoMap => this.scriptParseInfoMap.Value;
 
-        private ParseOptions DefaultParseOptions
-        {
-            get
-            {
-                return this.defaultParseOptions;
-            }
-        }
+        private ParseOptions DefaultParseOptions => this.defaultParseOptions;
 
         /// <summary>
         /// Default, parameterless constructor.
@@ -183,7 +171,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
             }
         }
 
-        internal ServiceHost ServiceHostInstance
+        internal IServiceHost ServiceHostInstance
         {
             get
             {
@@ -202,24 +190,12 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         /// <summary>
         /// Gets the current settings
         /// </summary>
-        internal SqlToolsSettings CurrentWorkspaceSettings
-        {
-            get { return WorkspaceServiceInstance.CurrentSettings; }
-        }
+        internal SqlToolsSettings CurrentWorkspaceSettings => WorkspaceServiceInstance.CurrentSettings;
 
         /// <summary>
         /// Gets the current workspace instance
         /// </summary>
-        internal Workspace.Workspace CurrentWorkspace
-        {
-            get { return WorkspaceServiceInstance.Workspace; }
-        }
-
-        /// <summary>
-        /// Gets or sets the current SQL Tools context
-        /// </summary>
-        /// <returns></returns>
-        internal SqlToolsContext Context { get; set; }
+        internal Workspace.Workspace CurrentWorkspace => WorkspaceServiceInstance.Workspace;
 
         #endregion
 
@@ -229,15 +205,9 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         /// Initializes the Language Service instance
         /// </summary>
         /// <param name="serviceHost"></param>
-        /// <param name="context"></param>
-        public void InitializeService(ServiceHost serviceHost, SqlToolsContext context)
+        public void InitializeService(IServiceHost serviceHost)
         {
             // Register the requests that this service will handle
-
-            // turn off until needed (10/28/2016)
-            // serviceHost.SetRequestHandler(ReferencesRequest.Type, HandleReferencesRequest);
-            // serviceHost.SetRequestHandler(DocumentHighlightRequest.Type, HandleDocumentHighlightRequest);
-
             serviceHost.SetRequestHandler(SignatureHelpRequest.Type, HandleSignatureHelpRequest);
             serviceHost.SetRequestHandler(CompletionResolveRequest.Type, HandleCompletionResolveRequest);
             serviceHost.SetRequestHandler(HoverRequest.Type, HandleHoverRequest);
@@ -271,10 +241,6 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 
             // Register a callback for when a connection is closed
             ConnectionServiceInstance.RegisterOnDisconnectTask(RemoveAutoCompleteCacheUriReference);
-
-            // Store the SqlToolsContext for future use
-            Context = context;
-
         }
 
         #endregion
@@ -287,7 +253,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         /// <param name="textDocumentPosition"></param>
         /// <param name="requestContext"></param>
         /// <returns></returns>
-        internal async Task HandleCompletionRequest(
+        internal void HandleCompletionRequest(
             TextDocumentPosition textDocumentPosition,
             RequestContext<CompletionItem[]> requestContext)
         {            
@@ -296,7 +262,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                 // check if Intellisense suggestions are enabled
                 if (ShouldSkipIntellisense(textDocumentPosition.TextDocument.Uri))
                 {
-                    await requestContext.SendResult(null);
+                    requestContext.SendResult(null);
                 }
                 else
                 {
@@ -305,7 +271,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                         textDocumentPosition.TextDocument.Uri);
                     if (scriptFile == null)
                     {
-                        await requestContext.SendResult(null);
+                        requestContext.SendResult(null);
                         return;
                     }
 
@@ -317,12 +283,12 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                     var completionItems = GetCompletionItems(
                         textDocumentPosition, scriptFile, connInfo);
 
-                    await requestContext.SendResult(completionItems);       
+                    requestContext.SendResult(completionItems);       
                 }
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
@@ -333,7 +299,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         /// <param name="completionItem"></param>
         /// <param name="requestContext"></param>
         /// <returns></returns>
-        internal async Task HandleCompletionResolveRequest(
+        internal void HandleCompletionResolveRequest(
             CompletionItem completionItem,
             RequestContext<CompletionItem> requestContext)
         {
@@ -343,21 +309,23 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                 // Note: Do not know file, so no need to check for MSSQL flavor
                 if (!CurrentWorkspaceSettings.IsSuggestionsEnabled)
                 {
-                    await requestContext.SendResult(completionItem);
+                    requestContext.SendResult(completionItem);
                 }
                 else
                 {
                     completionItem = ResolveCompletionItem(completionItem);
-                    await requestContext.SendResult(completionItem);
+                    requestContext.SendResult(completionItem);
                 }
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
-        internal async Task HandleDefinitionRequest(TextDocumentPosition textDocumentPosition, RequestContext<Location[]> requestContext)
+        internal void HandleDefinitionRequest(
+            TextDocumentPosition textDocumentPosition, 
+            RequestContext<Location[]> requestContext)
         {
             try 
             {
@@ -381,17 +349,17 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                     {
                         if (definitionResult.IsErrorResult)
                         {
-                            await requestContext.SendError(definitionResult.Message);
+                            requestContext.SendError(definitionResult.Message);
                         }
                         else
                         {
-                            await requestContext.SendResult(definitionResult.Locations);
+                            requestContext.SendResult(definitionResult.Locations);
                             succeeded = true;
                         }
                     }
                     else
                     {
-                        await requestContext.SendResult(Array.Empty<Location>());
+                        requestContext.SendResult(Array.Empty<Location>());
                     }
 
                     DocumentStatusHelper.SendTelemetryEvent(requestContext, CreatePeekTelemetryProps(succeeded, isConnected));
@@ -399,14 +367,14 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                 else
                 {
                     // Send an empty result so that processing does not hang when peek def service called from non-mssql clients
-                    await requestContext.SendResult(Array.Empty<Location>());
+                    requestContext.SendResult(Array.Empty<Location>());
                 }
 
                 DocumentStatusHelper.SendStatusChange(requestContext, textDocumentPosition, DocumentStatusHelper.DefinitionRequestCompleted);
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
@@ -423,24 +391,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
             };
         }
 
-// turn off this code until needed (10/28/2016)
-#if false
-        private async Task HandleReferencesRequest(
-            ReferencesParams referencesParams,
-            RequestContext<Location[]> requestContext)
-        {
-            await requestContext.SendResult(null);
-        }
-
-        private async Task HandleDocumentHighlightRequest(
-            TextDocumentPosition textDocumentPosition,
-            RequestContext<DocumentHighlight[]> requestContext)
-        {
-            await requestContext.SendResult(null);
-        }
-#endif
-
-        internal async Task HandleSignatureHelpRequest(
+        internal void HandleSignatureHelpRequest(
             TextDocumentPosition textDocumentPosition,
             RequestContext<SignatureHelp> requestContext)
         {
@@ -449,7 +400,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                 // check if Intellisense suggestions are enabled
                 if (ShouldSkipNonMssqlFile(textDocumentPosition))
                 {
-                    await requestContext.SendResult(null);
+                    requestContext.SendResult(null);
                 }
                 else
                 {
@@ -462,21 +413,21 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                     }
                     if (help != null)
                     {
-                        await requestContext.SendResult(help);
+                        requestContext.SendResult(help);
                     }
                     else
                     {
-                        await requestContext.SendResult(new SignatureHelp());
+                        requestContext.SendResult(new SignatureHelp());
                     }
                 }
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
-        private async Task HandleHoverRequest(
+        private void HandleHoverRequest(
             TextDocumentPosition textDocumentPosition,
             RequestContext<Hover> requestContext)
         {
@@ -496,15 +447,15 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                     }
                     if (hover != null)
                     {
-                        await requestContext.SendResult(hover);
+                        requestContext.SendResult(hover);
                     }
                 }
 
-                await requestContext.SendResult(new Hover());
+                requestContext.SendResult(new Hover());
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
@@ -728,7 +679,6 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 
         #endregion
 
-
         #region "AutoComplete Provider methods"
 
         /// <summary>
@@ -880,7 +830,6 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                 ServiceHostInstance.SendEvent(IntelliSenseReadyNotification.Type, new IntelliSenseReadyParams() {OwnerUri = info.OwnerUri});
             });
         }
-
 
         /// <summary>
         /// Preinitialize the parser and binder with common metadata.
@@ -1068,8 +1017,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 
             return completionItem;
         }
-
-        
+      
         /// <summary>
         /// Queue a task to the binding queue
         /// </summary>
@@ -1609,7 +1557,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                 else if (ShouldSkipNonMssqlFile(scriptFile.ClientFilePath))
                 {
                     // Clear out any existing markers in case file type was changed
-                    await DiagnosticsHelper.ClearScriptDiagnostics(scriptFile.ClientFilePath, eventContext);
+                    DiagnosticsHelper.ClearScriptDiagnostics(scriptFile.ClientFilePath, eventContext);
                     continue;
                 }
 
@@ -1617,7 +1565,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                 ScriptFileMarker[] semanticMarkers = GetSemanticMarkers(scriptFile);
                 Logger.Write(LogLevel.Verbose, "Analysis complete.");
 
-                await DiagnosticsHelper.PublishScriptDiagnostics(scriptFile, semanticMarkers, eventContext);
+                DiagnosticsHelper.PublishScriptDiagnostics(scriptFile, semanticMarkers, eventContext);
             }
         }
 
