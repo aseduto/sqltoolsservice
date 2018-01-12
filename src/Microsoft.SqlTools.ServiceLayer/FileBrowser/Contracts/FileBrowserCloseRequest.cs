@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.FileBrowser.Contracts
 {
@@ -14,7 +14,7 @@ namespace Microsoft.SqlTools.ServiceLayer.FileBrowser.Contracts
         /// <summary>
         /// Connection uri
         /// </summary>
-        public string OwnerUri;
+        public string OwnerUri { get; set; }
     }
 
     /// <summary>
@@ -25,28 +25,28 @@ namespace Microsoft.SqlTools.ServiceLayer.FileBrowser.Contracts
         /// <summary>
         /// Result of the operation
         /// </summary>
-        public bool Succeeded;
+        public bool Succeeded { get; set; }
 
         /// <summary>
         /// Error message if any
         /// </summary>
-        public string Message;
+        public string Message { get; set; }
     }
 
     /// <summary>
     /// Requst to close the file browser
     /// </summary>
-    class FileBrowserCloseRequest
+    public static class FileBrowserCloseRequest
     {
         public static readonly
             RequestType<FileBrowserCloseParams, FileBrowserCloseResponse> Type =
-                RequestType<FileBrowserCloseParams, FileBrowserCloseResponse>.Create("filebrowser/close");
+            RequestType<FileBrowserCloseParams, FileBrowserCloseResponse>.Create("filebrowser/close");
     }
 
     /// <summary>
     /// Notification for close completion
     /// </summary>
-    public class FileBrowserClosedNotification
+    public static class FileBrowserClosedNotification
     {
         public static readonly
             EventType<FileBrowserCloseResponse> Type =

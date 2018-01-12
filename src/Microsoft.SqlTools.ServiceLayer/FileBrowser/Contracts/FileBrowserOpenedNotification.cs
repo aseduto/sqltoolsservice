@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.FileBrowser.Contracts
 {
@@ -16,28 +16,28 @@ namespace Microsoft.SqlTools.ServiceLayer.FileBrowser.Contracts
         /// <summary>
         /// Connection uri
         /// </summary>
-        public string OwnerUri;
+        public string OwnerUri { get; set; }
 
         /// <summary>
         /// Entire file/folder tree 
         /// </summary>
-        public FileTree FileTree;
+        public FileTree FileTree { get; set; }
 
         /// <summary>
         /// Result of the operation
         /// </summary>
-        public bool Succeeded;
+        public bool Succeeded { get; set; }
 
         /// <summary>
         /// Error message
         /// </summary>
-        public string Message;
+        public string Message { get; set; }
     }
 
     /// <summary>
     /// Notification for completing file browser opening
     /// </summary>
-    public class FileBrowserOpenedNotification
+    public static class FileBrowserOpenedNotification
     {
         public static readonly
             EventType<FileBrowserOpenedParams> Type =

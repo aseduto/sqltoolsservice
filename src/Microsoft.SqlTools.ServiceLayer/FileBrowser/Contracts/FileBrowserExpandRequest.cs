@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.FileBrowser.Contracts
 {
@@ -14,18 +14,18 @@ namespace Microsoft.SqlTools.ServiceLayer.FileBrowser.Contracts
         /// <summary>
         /// Connection uri
         /// </summary>
-        public string OwnerUri;
+        public string OwnerUri { get; set; }
 
         /// <summary>
         /// The path to expand the nodes for
         /// </summary>
-        public string ExpandPath;
+        public string ExpandPath { get; set; }
     }
 
     /// <summary>
     /// Request to expand a node in the file browser
     /// </summary>
-    public class FileBrowserExpandRequest
+    public static class FileBrowserExpandRequest
     {
         public static readonly
             RequestType<FileBrowserExpandParams, bool> Type =
