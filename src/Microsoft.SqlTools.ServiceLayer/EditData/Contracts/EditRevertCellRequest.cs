@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.EditData.Contracts
 {
@@ -22,7 +22,7 @@ namespace Microsoft.SqlTools.ServiceLayer.EditData.Contracts
     {
     }
 
-    public class EditRevertCellRequest
+    public static class EditRevertCellRequest
     {
         public static readonly
             RequestType<EditRevertCellParams, EditRevertCellResult> Type =
