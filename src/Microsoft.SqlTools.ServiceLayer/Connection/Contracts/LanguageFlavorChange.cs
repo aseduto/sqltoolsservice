@@ -3,11 +3,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Connection.Contracts
 {
-
     /// <summary>
     /// Parameters for the Language Flavor Change notification.
     /// </summary>
@@ -33,7 +32,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection.Contracts
     /// Defines an event that is sent from the client to notify that
     /// the client is exiting and the server should as well.
     /// </summary>
-    public class LanguageFlavorChangeNotification
+    public static class LanguageFlavorChangeNotification
     {
         public static readonly
             EventType<LanguageFlavorChangeParams> Type =

@@ -13,14 +13,15 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Connection.ReliableConnection;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
-using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlTools.ServiceLayer.Utility;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Connection
 {
@@ -104,7 +105,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
         /// Service host object for sending/receiving requests/events.
         /// Internal for testing purposes.
         /// </summary>
-        internal IProtocolEndpoint ServiceHost
+        internal IServiceHost ServiceHost
         {
             get;
             set;
@@ -940,7 +941,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
             return response;
         }
 
-        public void InitializeService(IProtocolEndpoint serviceHost)
+        public void InitializeService(IServiceHost serviceHost)
         {
             this.ServiceHost = serviceHost;
 
@@ -975,7 +976,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
         /// <param name="connectParams"></param>
         /// <param name="requestContext"></param>
         /// <returns></returns>
-        protected async Task HandleConnectRequest(
+        protected void HandleConnectRequest(
             ConnectParams connectParams,
             RequestContext<bool> requestContext)
         {
@@ -984,11 +985,11 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
             try
             {
                 RunConnectRequestHandlerTask(connectParams);
-                await requestContext.SendResult(true);
+                requestContext.SendResult(true);
             }
             catch
             {
-                await requestContext.SendResult(false);
+                requestContext.SendResult(false);
             }
         }
 
@@ -1003,13 +1004,13 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
                     ConnectionCompleteParams result = ValidateConnectParams(connectParams);
                     if (result != null)
                     {
-                        await ServiceHost.SendEvent(ConnectionCompleteNotification.Type, result);
+                        ServiceHost.SendEvent(ConnectionCompleteNotification.Type, result);
                         return;
                     }
 
                     // open connection based on request details
                     result = await Connect(connectParams);
-                    await ServiceHost.SendEvent(ConnectionCompleteNotification.Type, result);
+                    ServiceHost.SendEvent(ConnectionCompleteNotification.Type, result);
                 }
                 catch (Exception ex)
                 {
@@ -1017,7 +1018,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
                     {
                         Messages = ex.ToString()
                     };
-                    await ServiceHost.SendEvent(ConnectionCompleteNotification.Type, result);
+                    ServiceHost.SendEvent(ConnectionCompleteNotification.Type, result);
                 }
             }).ContinueWithOnFaulted(null);
         }
@@ -1025,7 +1026,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
         /// <summary>
         /// Handle cancel connect requests
         /// </summary>
-        protected async Task HandleCancelConnectRequest(
+        protected void HandleCancelConnectRequest(
             CancelConnectParams cancelParams,
             RequestContext<bool> requestContext)
         {
@@ -1034,18 +1035,18 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
             try
             {
                 bool result = CancelConnect(cancelParams);
-                await requestContext.SendResult(result);
+                requestContext.SendResult(result);
             }
             catch(Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
         /// <summary>
         /// Handle disconnect requests
         /// </summary>
-        protected async Task HandleDisconnectRequest(
+        protected void HandleDisconnectRequest(
             DisconnectParams disconnectParams,
             RequestContext<bool> requestContext)
         {
@@ -1054,11 +1055,11 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
             try
             {
                 bool result = Instance.Disconnect(disconnectParams);
-                await requestContext.SendResult(result);
+                requestContext.SendResult(result);
             }
             catch(Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
 
         }
@@ -1066,7 +1067,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
         /// <summary>
         /// Handle requests to list databases on the current server
         /// </summary>
-        protected async Task HandleListDatabasesRequest(
+        protected void HandleListDatabasesRequest(
             ListDatabasesParams listDatabasesParams,
             RequestContext<ListDatabasesResponse> requestContext)
         {
@@ -1075,11 +1076,11 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
             try
             {
                 ListDatabasesResponse result = ListDatabases(listDatabasesParams);
-                await requestContext.SendResult(result);
+                requestContext.SendResult(result);
             }
             catch(Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
@@ -1255,11 +1256,11 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
         /// <summary>
         /// Handles a request to change the database for a connection
         /// </summary>
-        public async Task HandleChangeDatabase(
+        public void HandleChangeDatabase(
             ChangeDatabaseParams changeDatabaseParams,
             RequestContext<bool> requestContext)
         {
-            await requestContext.SendResult(ChangeConnectionDatabaseContext(changeDatabaseParams.OwnerUri, changeDatabaseParams.NewDatabase, true));
+            requestContext.SendResult(ChangeConnectionDatabaseContext(changeDatabaseParams.OwnerUri, changeDatabaseParams.NewDatabase, true));
         }
 
         /// <summary>

@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Connection.Contracts
 {
@@ -57,7 +57,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection.Contracts
     /// <summary>
     /// ConnectionComplete notification mapping entry 
     /// </summary>
-    public class ConnectionCompleteNotification
+    public static class ConnectionCompleteNotification
     {
         public static readonly 
             EventType<ConnectionCompleteParams> Type =
