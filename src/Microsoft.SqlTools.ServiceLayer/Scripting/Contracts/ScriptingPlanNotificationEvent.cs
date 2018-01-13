@@ -4,7 +4,7 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting.Contracts
 {
@@ -27,7 +27,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting.Contracts
     /// <summary>
     /// Event sent to indicate a script operation has determined which objects will be scripted.
     /// </summary>
-    public class ScriptingPlanNotificationEvent
+    public static class ScriptingPlanNotificationEvent
     {
         public static readonly EventType<ScriptingPlanNotificationParams> Type = EventType<ScriptingPlanNotificationParams>.Create("scripting/scriptPlanNotification");
     }

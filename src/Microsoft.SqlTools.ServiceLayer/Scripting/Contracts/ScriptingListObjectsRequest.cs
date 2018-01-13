@@ -3,8 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using System.Collections.Generic;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting.Contracts
 {
@@ -27,9 +26,10 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting.Contracts
     /// <summary>
     /// Defines the scripting list objects request type.
     /// </summary>
-    public class ScriptingListObjectsRequest
+    public static class ScriptingListObjectsRequest
     {
-        public static readonly RequestType<ScriptingListObjectsParams, ScriptingListObjectsResult> Type = 
+        public static readonly 
+            RequestType<ScriptingListObjectsParams, ScriptingListObjectsResult> Type = 
             RequestType<ScriptingListObjectsParams, ScriptingListObjectsResult>.Create("scripting/listObjects");
     }
 }

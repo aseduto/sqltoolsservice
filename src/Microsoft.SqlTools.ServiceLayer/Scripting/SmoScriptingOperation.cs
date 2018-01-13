@@ -3,13 +3,13 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlServer.Management.Common;
-using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
-using Microsoft.SqlTools.Utility;
 using System;
 using System.Data.SqlClient;
 using System.IO;
 using System.Reflection;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
+using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
 using static Microsoft.SqlServer.Management.SqlScriptPublish.SqlScriptOptions;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting

@@ -5,26 +5,25 @@
 
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 using System.IO;
 using System.Linq;
+using System.Text;
 using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlServer.Management.Sdk.Sfc;
 using Microsoft.SqlServer.Management.Smo;
 using Microsoft.SqlServer.Management.SqlParser.Intellisense;
 using Microsoft.SqlServer.Management.SqlParser.MetadataProvider;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
 using Microsoft.SqlTools.ServiceLayer.Utility;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
-using Microsoft.SqlTools.Utility;
 using ConnectionType = Microsoft.SqlTools.ServiceLayer.Connection.ConnectionType;
 using Location = Microsoft.SqlTools.ServiceLayer.Workspace.Contracts.Location;
-using Microsoft.SqlServer.Management.Sdk.Sfc;
-using System.Text;
-using System.Data;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting
 {

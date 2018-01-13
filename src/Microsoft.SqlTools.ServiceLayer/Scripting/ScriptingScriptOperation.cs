@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using Microsoft.SqlServer.Management.SqlScriptPublish;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting
 {
@@ -109,21 +109,6 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
                     publishModel.ScriptError -= this.OnPublishModelScriptError;
                 }
             }
-        }
-
-        protected override void SendCompletionNotificationEvent(ScriptingCompleteParams parameters)
-        {
-            base.SendCompletionNotificationEvent(parameters);
-        }
-
-        protected override void SendPlanNotificationEvent(ScriptingPlanNotificationParams parameters)
-        {
-            base.SendPlanNotificationEvent(parameters);
-        }
-
-        protected override void SendProgressNotificationEvent(ScriptingProgressNotificationParams parameters)
-        {
-            base.SendProgressNotificationEvent(parameters);
         }
 
         protected override void SetCommonEventProperties(ScriptingEventParams parameters)

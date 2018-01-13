@@ -4,18 +4,18 @@
 //
 
 using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
-using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
-using Microsoft.SqlTools.Utility;
-using Microsoft.SqlServer.Management.Common;
-using Microsoft.SqlServer.Management.Smo;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Text;
 using System.Globalization;
-using Microsoft.SqlServer.Management.SqlScriptPublish;
-using Microsoft.SqlTools.ServiceLayer.Utility;
+using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Sdk.Sfc;
+using Microsoft.SqlServer.Management.Smo;
+using Microsoft.SqlServer.Management.SqlScriptPublish;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
+using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting
 {

@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting.Contracts
 {
@@ -20,9 +20,10 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting.Contracts
     /// <summary>
     /// Defines the scripting cancel request type.
     /// </summary>
-    public class ScriptingCancelRequest
+    public static class ScriptingCancelRequest
     {
-        public static readonly RequestType<ScriptingCancelParams, ScriptingCancelResult> Type = 
+        public static readonly 
+            RequestType<ScriptingCancelParams, ScriptingCancelResult> Type = 
             RequestType<ScriptingCancelParams, ScriptingCancelResult>.Create("scripting/scriptCancel");
     }
 }

@@ -6,8 +6,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting
 {

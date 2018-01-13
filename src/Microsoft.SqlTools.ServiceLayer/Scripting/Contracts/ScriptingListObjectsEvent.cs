@@ -4,7 +4,7 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting.Contracts
 {
@@ -27,7 +27,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting.Contracts
     /// <summary>
     /// Event sent to indicate a list objects operation has completed.
     /// </summary>
-    public class ScriptingListObjectsCompleteEvent
+    public static class ScriptingListObjectsCompleteEvent
     {
         public static readonly EventType<ScriptingListObjectsCompleteParams> Type = 
             EventType<ScriptingListObjectsCompleteParams>.Create("scripting/listObjectsComplete");

@@ -4,26 +4,15 @@
 //
 
 using System;
-using System.IO;
 using System.Collections.Concurrent;
-using System.Collections.Specialized;
-using System.Data.SqlClient;
-using System.Diagnostics;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Connection;
-using Microsoft.SqlTools.ServiceLayer.Hosting;
-using Microsoft.SqlTools.ServiceLayer.Metadata.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
-using Microsoft.SqlTools.Utility;
 using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlServer.Management.Common;
-using Microsoft.SqlServer.Management.Sdk.Sfc;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Utility;
-using Microsoft.SqlTools.ServiceLayer.LanguageServices;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting
 {
@@ -73,8 +62,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
         /// Initializes the Scripting Service instance
         /// </summary>
         /// <param name="serviceHost"></param>
-        /// <param name="context"></param>
-        public void InitializeService(ServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost)
         {
             serviceHost.SetRequestHandler(ScriptingRequest.Type, this.HandleScriptExecuteRequest);
             serviceHost.SetRequestHandler(ScriptingCancelRequest.Type, this.HandleScriptCancelRequest);
@@ -91,7 +79,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
         /// <summary>
         /// Handles request to execute start the list objects operation.
         /// </summary>
-        private async Task HandleListObjectsRequest(ScriptingListObjectsParams parameters, RequestContext<ScriptingListObjectsResult> requestContext)
+        private void HandleListObjectsRequest(ScriptingListObjectsParams parameters, RequestContext<ScriptingListObjectsResult> requestContext)
         {
             try
             {
@@ -100,18 +88,18 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
 
                 RunTask(requestContext, operation);
 
-                await requestContext.SendResult(new ScriptingListObjectsResult { OperationId = operation.OperationId });
+                requestContext.SendResult(new ScriptingListObjectsResult { OperationId = operation.OperationId });
             }
             catch (Exception e)
             {
-                await requestContext.SendError(e);
+                requestContext.SendError(e);
             }
         }
 
         /// <summary>
         /// Handles request to start the scripting operation
         /// </summary>
-        public async Task HandleScriptExecuteRequest(ScriptingParams parameters, RequestContext<ScriptingResult> requestContext)
+        public void HandleScriptExecuteRequest(ScriptingParams parameters, RequestContext<ScriptingResult> requestContext)
         {
             SmoScriptingOperation operation = null;
 
@@ -143,8 +131,8 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
                     operation = new ScriptAsScriptingOperation(parameters);
                 }
 
-                operation.PlanNotification += (sender, e) => requestContext.SendEvent(ScriptingPlanNotificationEvent.Type, e).Wait();
-                operation.ProgressNotification += (sender, e) => requestContext.SendEvent(ScriptingProgressNotificationEvent.Type, e).Wait();
+                operation.PlanNotification += (sender, e) => requestContext.SendEvent(ScriptingPlanNotificationEvent.Type, e);
+                operation.ProgressNotification += (sender, e) => requestContext.SendEvent(ScriptingProgressNotificationEvent.Type, e);
                 operation.CompleteNotification += (sender, e) => this.SendScriptingCompleteEvent(requestContext, ScriptingCompleteEvent.Type, e, operation, parameters.ScriptDestination);
 
                 RunTask(requestContext, operation);
@@ -152,7 +140,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
             }
             catch (Exception e)
             {
-                await requestContext.SendError(e);
+                requestContext.SendError(e);
             }
         }
 
@@ -177,7 +165,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
         /// <summary>
         /// Handles request to cancel a script operation.
         /// </summary>
-        public async Task HandleScriptCancelRequest(ScriptingCancelParams parameters, RequestContext<ScriptingCancelResult> requestContext)
+        public void HandleScriptCancelRequest(ScriptingCancelParams parameters, RequestContext<ScriptingCancelResult> requestContext)
         {
             try
             {
@@ -191,28 +179,28 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
                     Logger.Write(LogLevel.Normal, string.Format("Operation {0} was not found", operation.OperationId));
                 }
 
-                await requestContext.SendResult(new ScriptingCancelResult());
+                requestContext.SendResult(new ScriptingCancelResult());
             }
             catch (Exception e)
             {
-                await requestContext.SendError(e);
+                requestContext.SendError(e);
             }
         }
 
         private async void SendScriptingCompleteEvent<TParams>(RequestContext<ScriptingResult> requestContext, EventType<TParams> eventType, TParams parameters, 
                                                                SmoScriptingOperation operation, string scriptDestination)
         {
-            await requestContext.SendEvent(eventType, parameters);
+            requestContext.SendEvent(eventType, parameters);
             switch (scriptDestination)
             {
                 case "ToEditor":
-                    await requestContext.SendResult(new ScriptingResult { OperationId = operation.OperationId, Script = operation.ScriptText });
+                    requestContext.SendResult(new ScriptingResult { OperationId = operation.OperationId, Script = operation.ScriptText });
                     break;
                 case "ToSingleFile":
-                    await requestContext.SendResult(new ScriptingResult { OperationId = operation.OperationId });
+                    requestContext.SendResult(new ScriptingResult { OperationId = operation.OperationId });
                     break;
                 default:
-                    await requestContext.SendError(string.Format("Operation {0} failed", operation.ToString()));
+                    requestContext.SendError(string.Format("Operation {0} failed", operation.ToString()));
                     break;
             }
         }
@@ -222,7 +210,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
         /// </summary>
         private void RunTask<T>(RequestContext<T> context, ScriptingOperation operation)
         {
-            ScriptingTask = Task.Run(async () =>
+            ScriptingTask = Task.Run(() =>
             {
                 try
                 {
@@ -231,14 +219,14 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
                 }
                 catch (Exception e)
                 {
-                    await context.SendError(e);
+                    context.SendError(e);
                 }
                 finally
                 {
                     ScriptingOperation temp;
                     this.ActiveOperations.TryRemove(operation.OperationId, out temp);
                 }
-            }).ContinueWithOnFaulted(async t => await context.SendError(t.Exception));
+            }).ContinueWithOnFaulted(t => context.SendError(t.Exception));
         }
 
         internal Task ScriptingTask { get; set; }
