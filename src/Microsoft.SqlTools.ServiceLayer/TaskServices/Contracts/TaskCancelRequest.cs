@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts
 {
@@ -15,10 +15,10 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts
         public string TaskId { get; set; }
     }
 
-    public class CancelTaskRequest
+    public static class CancelTaskRequest
     {
         public static readonly
             RequestType<CancelTaskParams, bool> Type =
-                RequestType<CancelTaskParams, bool>.Create("tasks/canceltask");
+            RequestType<CancelTaskParams, bool>.Create("tasks/canceltask");
     }
 }

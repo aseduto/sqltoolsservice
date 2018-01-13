@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts
 {
@@ -18,10 +18,10 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts
         public TaskInfo[] Tasks { get; set; }
     }
 
-    public class ListTasksRequest
+    public static class ListTasksRequest
     {
         public static readonly
             RequestType<ListTasksParams, ListTasksResponse> Type =
-                RequestType<ListTasksParams, ListTasksResponse>.Create("tasks/listtasks");
+            RequestType<ListTasksParams, ListTasksResponse>.Create("tasks/listtasks");
     }
 }

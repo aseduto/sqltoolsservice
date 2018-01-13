@@ -5,8 +5,8 @@
 
 using Microsoft.SqlServer.Management.Smo;
 using Microsoft.SqlTools.ServiceLayer.Connection;
-using Microsoft.SqlTools.Utility;
 using System;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.TaskServices
 {
@@ -68,10 +68,6 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
             {
                 Logger.Write(LogLevel.Warning, $"Failed to gain access to database. server|database:{ServerName}|{DatabaseName}");
                 throw databaseFullAccessException;
-            }
-            catch
-            {
-                throw;
             }
             finally
             {

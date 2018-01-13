@@ -3,14 +3,14 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts;
 using System;
-using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting;
-using Microsoft.SqlTools.Extensibility;
-using Microsoft.SqlTools.Utility;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
+using Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.TaskServices
 {
@@ -18,15 +18,12 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
     {
         private static readonly Lazy<TaskService> instance = new Lazy<TaskService>(() => new TaskService());
         private SqlTaskManager taskManager = null;
-        private IProtocolEndpoint serviceHost;
+        private IServiceHost serviceHost;
 
         /// <summary>
         /// Gets the singleton instance object
         /// </summary>
-        public static TaskService Instance
-        {
-            get { return instance.Value; }
-        }
+        public static TaskService Instance => instance.Value;
 
         /// <summary>
         /// Task Manager Instance to use for testing
@@ -50,12 +47,12 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
         /// <summary>
         /// Initializes the service instance
         /// </summary>
-        public override void InitializeService(IProtocolEndpoint serviceHost)
+        public override void InitializeService(IServiceHost serviceHost)
         {
             this.serviceHost = serviceHost;
             Logger.Write(LogLevel.Verbose, "TaskService initialized");
-            serviceHost.SetRequestHandler(ListTasksRequest.Type, HandleListTasksRequest);
-            serviceHost.SetRequestHandler(CancelTaskRequest.Type, HandleCancelTaskRequest);
+            serviceHost.SetAsyncRequestHandler(ListTasksRequest.Type, HandleListTasksRequest);
+            serviceHost.SetAsyncRequestHandler(CancelTaskRequest.Type, HandleCancelTaskRequest);
             TaskManager.TaskAdded += OnTaskAdded;
         }
 
@@ -73,8 +70,10 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
                 Validate.IsNotNull(nameof(listTasksParams), listTasksParams);
                 return Task.Factory.StartNew(() =>
                 {
-                    ListTasksResponse response = new ListTasksResponse();
-                    response.Tasks = TaskManager.Tasks.Select(x => x.ToTaskInfo()).ToArray();
+                    ListTasksResponse response = new ListTasksResponse
+                    {
+                        Tasks = TaskManager.Tasks.Select(x => x.ToTaskInfo()).ToArray()
+                    };
 
                     return response;
                 });
@@ -110,7 +109,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
             await HandleRequestAsync(cancelTask, context, "HandleCancelTaskRequest");
         }
 
-        private async void OnTaskAdded(object sender, TaskEventArgs<SqlTask> e)
+        private void OnTaskAdded(object sender, TaskEventArgs<SqlTask> e)
         {
             SqlTask sqlTask = e.TaskData;
             if (sqlTask != null)
@@ -119,11 +118,11 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
                 sqlTask.ScriptAdded += OnTaskScriptAdded;
                 sqlTask.MessageAdded += OnTaskMessageAdded;
                 sqlTask.StatusChanged += OnTaskStatusChanged;
-                await serviceHost.SendEvent(TaskCreatedNotification.Type, taskInfo);
+                serviceHost.SendEvent(TaskCreatedNotification.Type, taskInfo);
             }
         }
 
-        private async void OnTaskStatusChanged(object sender, TaskEventArgs<SqlTaskStatus> e)
+        private void OnTaskStatusChanged(object sender, TaskEventArgs<SqlTaskStatus> e)
         {
             SqlTask sqlTask = e.SqlTask;
             if (sqlTask != null)
@@ -138,11 +137,11 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
                 {
                     progressInfo.Duration = sqlTask.Duration;
                 }
-                await serviceHost.SendEvent(TaskStatusChangedNotification.Type, progressInfo);
+                serviceHost.SendEvent(TaskStatusChangedNotification.Type, progressInfo);
             }
         }
         
-        private async void OnTaskScriptAdded(object sender, TaskEventArgs<TaskScript> e)
+        private void OnTaskScriptAdded(object sender, TaskEventArgs<TaskScript> e)
         {
             SqlTask sqlTask = e.SqlTask;
             if (sqlTask != null)
@@ -155,11 +154,11 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
                     Message = e.TaskData.ErrorMessage,
                 };
 
-                await serviceHost.SendEvent(TaskStatusChangedNotification.Type, progressInfo);
+                serviceHost.SendEvent(TaskStatusChangedNotification.Type, progressInfo);
             }
         }
 
-        private async void OnTaskMessageAdded(object sender, TaskEventArgs<TaskMessage> e)
+        private void OnTaskMessageAdded(object sender, TaskEventArgs<TaskMessage> e)
         {
             SqlTask sqlTask = e.SqlTask;
             if (sqlTask != null)
@@ -170,7 +169,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
                     Message = e.TaskData.Description,
                     Status = sqlTask.TaskStatus
                 };
-                await serviceHost.SendEvent(TaskStatusChangedNotification.Type, progressInfo);
+                serviceHost.SendEvent(TaskStatusChangedNotification.Type, progressInfo);
             }
         }
 

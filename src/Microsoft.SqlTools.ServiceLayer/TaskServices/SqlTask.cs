@@ -9,8 +9,8 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts;
-using Microsoft.SqlTools.Utility;
 using System.Threading;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.TaskServices
 {
