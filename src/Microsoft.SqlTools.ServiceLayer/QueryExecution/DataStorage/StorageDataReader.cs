@@ -13,8 +13,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
 {

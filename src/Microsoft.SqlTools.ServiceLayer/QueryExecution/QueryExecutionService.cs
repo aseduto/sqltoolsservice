@@ -2,21 +2,22 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
+
 using System;
 using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
-using Microsoft.SqlTools.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteRequests;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
-using Microsoft.SqlTools.Utility;
-using Microsoft.SqlTools.ServiceLayer.Hosting;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 {
@@ -137,19 +138,19 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// event handler.
         /// </summary>
         /// <param name="serviceHost">The service host instance to register with</param>
-        public void InitializeService(ServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost)
         {
             // Register handlers for requests
             serviceHost.SetRequestHandler(ExecuteDocumentSelectionRequest.Type, HandleExecuteRequest);
             serviceHost.SetRequestHandler(ExecuteDocumentStatementRequest.Type, HandleExecuteRequest);
             serviceHost.SetRequestHandler(ExecuteStringRequest.Type, HandleExecuteRequest);
-            serviceHost.SetRequestHandler(SubsetRequest.Type, HandleResultSubsetRequest);
+            serviceHost.SetAsyncRequestHandler(SubsetRequest.Type, HandleResultSubsetRequest);
             serviceHost.SetRequestHandler(QueryDisposeRequest.Type, HandleDisposeRequest);
             serviceHost.SetRequestHandler(QueryCancelRequest.Type, HandleCancelRequest);
             serviceHost.SetRequestHandler(SaveResultsAsCsvRequest.Type, HandleSaveResultsAsCsvRequest);
             serviceHost.SetRequestHandler(SaveResultsAsExcelRequest.Type, HandleSaveResultsAsExcelRequest);
             serviceHost.SetRequestHandler(SaveResultsAsJsonRequest.Type, HandleSaveResultsAsJsonRequest);
-            serviceHost.SetRequestHandler(QueryExecutionPlanRequest.Type, HandleExecutionPlanRequest);
+            serviceHost.SetAsyncRequestHandler(QueryExecutionPlanRequest.Type, HandleExecutionPlanRequest);
             serviceHost.SetRequestHandler(SimpleExecuteRequest.Type, HandleSimpleExecuteRequest);
 
             // Register handler for shutdown event
@@ -168,24 +169,24 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// <summary>
         /// Handles request to execute a selection of a document in the workspace service
         /// </summary>
-        internal Task HandleExecuteRequest(ExecuteRequestParamsBase executeParams,
+        internal void HandleExecuteRequest(ExecuteRequestParamsBase executeParams,
             RequestContext<ExecuteRequestResult> requestContext)
         {
             // Setup actions to perform upon successful start and on failure to start
-            Func<Query, Task<bool>> queryCreateSuccessAction = async q => {
-                await requestContext.SendResult(new ExecuteRequestResult());
+            Func<Query, bool> queryCreateSuccessAction = q => {
+                requestContext.SendResult(new ExecuteRequestResult());
                 return true;
             };
-            Func<string, Task> queryCreateFailureAction = message => requestContext.SendError(message);
+            Action<string> queryCreateFailureAction = message => requestContext.SendError(message);
 
             // Use the internal handler to launch the query
-            return InterServiceExecuteQuery(executeParams, null, requestContext, queryCreateSuccessAction, queryCreateFailureAction, null, null);
+            InterServiceExecuteQuery(executeParams, null, requestContext, queryCreateSuccessAction, queryCreateFailureAction, null, null);
         }
 
         /// <summary>
         /// Handles a request to execute a string and return the result
         /// </summary>
-        internal async Task HandleSimpleExecuteRequest(SimpleExecuteParams executeParams,
+        internal void HandleSimpleExecuteRequest(SimpleExecuteParams executeParams,
             RequestContext<SimpleExecuteResult> requestContext)
         {
             try
@@ -202,7 +203,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 ConnectionInfo connInfo;
                 if (!ConnectionService.TryFindConnection(executeParams.OwnerUri, out connInfo))
                 {
-                    await requestContext.SendError(SR.QueryServiceQueryInvalidOwnerUri);
+                    requestContext.SendError(SR.QueryServiceQueryInvalidOwnerUri);
                     return;
                 }
                 
@@ -219,12 +220,12 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     ConnectionInfo newConn;
                     ConnectionService.TryFindConnection(randomUri, out newConn);
 
-                    Func<string, Task> queryCreateFailureAction = message => requestContext.SendError(message);
+                    Action<string> queryCreateFailureAction = message => requestContext.SendError(message);
 
                     ResultOnlyContext<SimpleExecuteResult> newContext = new ResultOnlyContext<SimpleExecuteResult>(requestContext);
 
                     // handle sending event back when the query completes
-                    Query.QueryAsyncEventHandler queryComplete = async query =>
+                    Query.QueryEventHandler queryComplete = async query =>
                     {
                         try
                         {
@@ -232,15 +233,15 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                             if (query.Batches.Length == 0 
                                 || query.Batches[0].ResultSets.Count == 0) 
                             {
-                                await requestContext.SendError(SR.QueryServiceResultSetHasNoResults);
+                                requestContext.SendError(SR.QueryServiceResultSetHasNoResults);
                                 return;
                             } 
 
                             long rowCount = query.Batches[0].ResultSets[0].RowCount;
                             // check to make sure there is a safe amount of rows to load into memory
-                            if (rowCount > Int32.MaxValue) 
+                            if (rowCount > int.MaxValue) 
                             {
-                                await requestContext.SendError(SR.QueryServiceResultSetTooLarge);
+                                requestContext.SendError(SR.QueryServiceResultSetTooLarge);
                                 return;
                             }
                             
@@ -265,7 +266,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                                 ResultSetSubset subset = await InterServiceResultSubset(subsetRequestParams);
                                 result.Rows = subset.Rows;
                             }
-                            await requestContext.SendResult(result);
+                            requestContext.SendResult(result);
                         } 
                         finally 
                         {
@@ -282,19 +283,19 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     };
 
                     // handle sending error back when query fails
-                    Query.QueryAsyncErrorEventHandler queryFail = async (q, e) =>
+                    Query.QueryErrorEventHandler queryFail = async (q, e) =>
                     {
-                        await requestContext.SendError(e);
+                        requestContext.SendError(e);
                     };
 
-                    await InterServiceExecuteQuery(executeStringParams, newConn, newContext, null, queryCreateFailureAction, queryComplete, queryFail);
+                    InterServiceExecuteQuery(executeStringParams, newConn, newContext, null, queryCreateFailureAction, queryComplete, queryFail);
                 });
 
                 ActiveSimpleExecuteRequests.TryAdd(randomUri, workTask);
             }
             catch(Exception ex) 
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 
@@ -311,12 +312,12 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 {
                     ResultSubset = subset
                 };
-                await requestContext.SendResult(result);
+                requestContext.SendResult(result);
             }
             catch (Exception e)
             {
                 // This was unexpected, so send back as error
-                await requestContext.SendError(e.Message);
+                requestContext.SendError(e.Message);
             }
         }
 
@@ -332,7 +333,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 Query query;
                 if (!ActiveQueries.TryGetValue(planParams.OwnerUri, out query))
                 {
-                    await requestContext.SendError(SR.QueryServiceRequestsNoQuery);
+                    requestContext.SendError(SR.QueryServiceRequestsNoQuery);
                     return;
                 }
 
@@ -341,33 +342,33 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 {
                     ExecutionPlan = await query.GetExecutionPlan(planParams.BatchIndex, planParams.ResultSetIndex)
                 };
-                await requestContext.SendResult(result);
+                requestContext.SendResult(result);
             }
             catch (Exception e)
             {
                 // This was unexpected, so send back as error
-                await requestContext.SendError(e.Message);
+                requestContext.SendError(e.Message);
             }
         }
 
         /// <summary>
         /// Handles a request to dispose of this query
         /// </summary>
-        internal async Task HandleDisposeRequest(QueryDisposeParams disposeParams,
+        internal void HandleDisposeRequest(QueryDisposeParams disposeParams,
             RequestContext<QueryDisposeResult> requestContext)
         {
             // Setup action for success and failure
-            Func<Task> successAction = () => requestContext.SendResult(new QueryDisposeResult());
-            Func<string, Task> failureAction = message => requestContext.SendError(message);
+            Action successAction = () => requestContext.SendResult(new QueryDisposeResult());
+            Action<string> failureAction = message => requestContext.SendError(message);
 
             // Use the inter-service dispose functionality
-            await InterServiceDisposeQuery(disposeParams.OwnerUri, successAction, failureAction);
+            InterServiceDisposeQuery(disposeParams.OwnerUri, successAction, failureAction);
         }
 
         /// <summary>
         /// Handles a request to cancel this query if it is in progress
         /// </summary>
-        internal async Task HandleCancelRequest(QueryCancelParams cancelParams,
+        internal void HandleCancelRequest(QueryCancelParams cancelParams,
             RequestContext<QueryCancelResult> requestContext)
         {
             try
@@ -376,7 +377,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 Query result;
                 if (!ActiveQueries.TryGetValue(cancelParams.OwnerUri, out result))
                 {
-                    await requestContext.SendResult(new QueryCancelResult
+                    requestContext.SendResult(new QueryCancelResult
                     {
                         Messages = SR.QueryServiceRequestsNoQuery
                     });
@@ -385,26 +386,26 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 
                 // Cancel the query and send a success message
                 result.Cancel();
-                await requestContext.SendResult(new QueryCancelResult());
+                requestContext.SendResult(new QueryCancelResult());
             }
             catch (InvalidOperationException e)
             {
                 // If this exception occurred, we most likely were trying to cancel a completed query
-                await requestContext.SendResult(new QueryCancelResult
+                requestContext.SendResult(new QueryCancelResult
                 {
                     Messages = e.Message
                 });
             }
             catch (Exception e)
             {
-                await requestContext.SendError(e.Message);
+                requestContext.SendError(e.Message);
             }
         }
 
         /// <summary>
         /// Process request to save a resultSet to a file in CSV format
         /// </summary>
-        internal async Task HandleSaveResultsAsCsvRequest(SaveResultsAsCsvRequestParams saveParams,
+        internal void HandleSaveResultsAsCsvRequest(SaveResultsAsCsvRequestParams saveParams,
             RequestContext<SaveResultRequestResult> requestContext)
         {
             // Use the default CSV file factory if we haven't overridden it
@@ -413,13 +414,13 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 SaveRequestParams = saveParams,
                 QueryExecutionSettings = Settings.QueryExecutionSettings
             };
-            await SaveResultsHelper(saveParams, requestContext, csvFactory);
+            SaveResultsHelper(saveParams, requestContext, csvFactory);
         }
 
         /// <summary>
         /// Process request to save a resultSet to a file in Excel format
         /// </summary>
-        internal async Task HandleSaveResultsAsExcelRequest(SaveResultsAsExcelRequestParams saveParams,
+        internal void HandleSaveResultsAsExcelRequest(SaveResultsAsExcelRequestParams saveParams,
             RequestContext<SaveResultRequestResult> requestContext)
         {
             // Use the default Excel file factory if we haven't overridden it
@@ -428,13 +429,13 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 SaveRequestParams = saveParams,
                 QueryExecutionSettings = Settings.QueryExecutionSettings
             };
-            await SaveResultsHelper(saveParams, requestContext, excelFactory);
+            SaveResultsHelper(saveParams, requestContext, excelFactory);
         }
 
         /// <summary>
         /// Process request to save a resultSet to a file in JSON format
         /// </summary>
-        internal async Task HandleSaveResultsAsJsonRequest(SaveResultsAsJsonRequestParams saveParams,
+        internal void HandleSaveResultsAsJsonRequest(SaveResultsAsJsonRequestParams saveParams,
             RequestContext<SaveResultRequestResult> requestContext)
         {
             // Use the default JSON file factory if we haven't overridden it
@@ -443,7 +444,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 SaveRequestParams = saveParams,
                 QueryExecutionSettings = Settings.QueryExecutionSettings
             };
-            await SaveResultsHelper(saveParams, requestContext, jsonFactory);
+            SaveResultsHelper(saveParams, requestContext, jsonFactory);
         }
 
         #endregion
@@ -472,13 +473,13 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// <param name="queryFailureFunc">
         /// Callback to call when query has completed execution with errors. May be <c>null</c>.
         /// </param>
-        public async Task InterServiceExecuteQuery(ExecuteRequestParamsBase executeParams, 
+        public void InterServiceExecuteQuery(ExecuteRequestParamsBase executeParams, 
             ConnectionInfo connInfo,
             IEventSender queryEventSender,
-            Func<Query, Task<bool>> queryCreateSuccessFunc,
-            Func<string, Task> queryCreateFailFunc,
-            Query.QueryAsyncEventHandler querySuccessFunc, 
-            Query.QueryAsyncErrorEventHandler queryFailureFunc)
+            Func<Query, bool> queryCreateSuccessFunc,
+            Action<string> queryCreateFailFunc,
+            Query.QueryEventHandler querySuccessFunc, 
+            Query.QueryErrorEventHandler queryFailureFunc)
         {
             Validate.IsNotNull(nameof(executeParams), executeParams);
             Validate.IsNotNull(nameof(queryEventSender), queryEventSender);
@@ -488,7 +489,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             {
                 // Get a new active query
                 newQuery = CreateQuery(executeParams, connInfo);
-                if (queryCreateSuccessFunc != null && !await queryCreateSuccessFunc(newQuery))
+                if (queryCreateSuccessFunc != null && !queryCreateSuccessFunc(newQuery))
                 {
                     // The callback doesn't want us to continue, for some reason
                     // It's ok if we leave the query behind in the active query list, the next call
@@ -500,10 +501,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             catch (Exception e)
             {
                 // Call the failure callback if it was provided
-                if (queryCreateFailFunc != null)
-                {
-                    await queryCreateFailFunc(e.Message);
-                }
+                queryCreateFailFunc?.Invoke(e.Message);
                 return;
             }
 
@@ -518,8 +516,8 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// <param name="ownerUri">The identifier of the query to be disposed</param>
         /// <param name="successAction">Action to perform on success</param>
         /// <param name="failureAction">Action to perform on failure</param>
-        public async Task InterServiceDisposeQuery(string ownerUri, Func<Task> successAction,
-            Func<string, Task> failureAction)
+        public void InterServiceDisposeQuery(string ownerUri, Action successAction,
+            Action<string> failureAction)
         {
             Validate.IsNotNull(nameof(successAction), successAction);
             Validate.IsNotNull(nameof(failureAction), failureAction);
@@ -530,7 +528,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 Query result;
                 if (!ActiveQueries.TryRemove(ownerUri, out result))
                 {
-                    await failureAction(SR.QueryServiceRequestsNoQuery);
+                    failureAction(SR.QueryServiceRequestsNoQuery);
                     return;
                 }
 
@@ -538,11 +536,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 result.Dispose();
 
                 // Success
-                await successAction();
+                successAction();
             }
             catch (Exception e)
             {
-                await failureAction(e.Message);
+                failureAction(e.Message);
             }
         }
 
@@ -611,11 +609,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 
         private static void ExecuteAndCompleteQuery(string ownerUri, Query query,
             IEventSender eventSender,
-            Query.QueryAsyncEventHandler querySuccessCallback,
-            Query.QueryAsyncErrorEventHandler queryFailureCallback)
+            Query.QueryEventHandler querySuccessCallback,
+            Query.QueryErrorEventHandler queryFailureCallback)
         {
             // Setup the callback to send the complete event
-            Query.QueryAsyncEventHandler completeCallback = async q =>
+            Query.QueryEventHandler completeCallback = q =>
             {
                 // Send back the results
                 QueryCompleteParams eventParams = new QueryCompleteParams
@@ -624,11 +622,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     BatchSummaries = q.BatchSummaries
                 };
 
-                await eventSender.SendEvent(QueryCompleteEvent.Type, eventParams);
+                eventSender.SendEvent(QueryCompleteEvent.Type, eventParams);
             };
 
             // Setup the callback to send the complete event
-            Query.QueryAsyncErrorEventHandler failureCallback = async (q, e) =>
+            Query.QueryErrorEventHandler failureCallback = (q, e) =>
             {
                 // Send back the results
                 QueryCompleteParams eventParams = new QueryCompleteParams
@@ -637,7 +635,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     BatchSummaries = q.BatchSummaries
                 };
 
-                await eventSender.SendEvent(QueryCompleteEvent.Type, eventParams);
+                eventSender.SendEvent(QueryCompleteEvent.Type, eventParams);
             };
             query.QueryCompleted += completeCallback;
             query.QueryFailed += failureCallback;
@@ -648,7 +646,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             query.QueryFailed += queryFailureCallback;
 
             // Setup the batch callbacks
-            Batch.BatchAsyncEventHandler batchStartCallback = async b =>
+            Batch.BatchEventHandler batchStartCallback = b =>
             {
                 BatchEventParams eventParams = new BatchEventParams
                 {
@@ -656,11 +654,11 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     OwnerUri = ownerUri
                 };
 
-                await eventSender.SendEvent(BatchStartEvent.Type, eventParams);
+                eventSender.SendEvent(BatchStartEvent.Type, eventParams);
             };
             query.BatchStarted += batchStartCallback;
 
-            Batch.BatchAsyncEventHandler batchCompleteCallback = async b =>
+            Batch.BatchEventHandler batchCompleteCallback = b =>
             {
                 BatchEventParams eventParams = new BatchEventParams
                 {
@@ -668,30 +666,30 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     OwnerUri = ownerUri
                 };
 
-                await eventSender.SendEvent(BatchCompleteEvent.Type, eventParams);
+                eventSender.SendEvent(BatchCompleteEvent.Type, eventParams);
             };
             query.BatchCompleted += batchCompleteCallback;
 
-            Batch.BatchAsyncMessageHandler batchMessageCallback = async m =>
+            Batch.BatchMessageHandler batchMessageCallback = m =>
             {
                 MessageParams eventParams = new MessageParams
                 {
                     Message = m,
                     OwnerUri = ownerUri
                 };
-                await eventSender.SendEvent(MessageEvent.Type, eventParams);
+                eventSender.SendEvent(MessageEvent.Type, eventParams);
             };
             query.BatchMessageSent += batchMessageCallback;
 
             // Setup the ResultSet completion callback
-            ResultSet.ResultSetAsyncEventHandler resultCallback = async r =>
+            ResultSet.ResultSetEventHandler resultCallback = r =>
             {
                 ResultSetEventParams eventParams = new ResultSetEventParams
                 {
                     ResultSetSummary = r.Summary,
                     OwnerUri = ownerUri
                 };
-                await eventSender.SendEvent(ResultSetCompleteEvent.Type, eventParams);
+                eventSender.SendEvent(ResultSetCompleteEvent.Type, eventParams);
             };
             query.ResultSetCompleted += resultCallback;
 
@@ -699,26 +697,26 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             query.Execute();
         }
 
-        private async Task SaveResultsHelper(SaveResultsRequestParams saveParams,
+        private void SaveResultsHelper(SaveResultsRequestParams saveParams,
             RequestContext<SaveResultRequestResult> requestContext, IFileStreamFactory fileFactory)
         {
             // retrieve query for OwnerUri
             Query query;
             if (!ActiveQueries.TryGetValue(saveParams.OwnerUri, out query))
             {
-                await requestContext.SendError(SR.QueryServiceQueryInvalidOwnerUri);
+                requestContext.SendError(SR.QueryServiceQueryInvalidOwnerUri);
                 return;
             }
 
             //Setup the callback for completion of the save task
-            ResultSet.SaveAsAsyncEventHandler successHandler = async parameters =>
+            ResultSet.SaveAsEventHandler successHandler = parameters =>
             {
-                await requestContext.SendResult(new SaveResultRequestResult());
+                requestContext.SendResult(new SaveResultRequestResult());
             };
-            ResultSet.SaveAsFailureAsyncEventHandler errorHandler = async (parameters, reason) =>
+            ResultSet.SaveAsFailureEventHandler errorHandler = async (parameters, reason) =>
             {
                 string message = SR.QueryServiceSaveAsFail(Path.GetFileName(parameters.FilePath), reason);
-                await requestContext.SendError(message);
+                requestContext.SendError(message);
             };
 
             try
@@ -728,7 +726,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             }
             catch (Exception e)
             {
-                await errorHandler(saveParams, e.Message);
+                errorHandler(saveParams, e.Message);
             }
         }
 

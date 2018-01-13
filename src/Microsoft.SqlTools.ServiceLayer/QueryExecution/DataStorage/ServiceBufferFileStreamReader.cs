@@ -8,9 +8,9 @@ using System.Collections.Generic;
 using System.Data.SqlTypes;
 using System.IO;
 using System.Text;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage
 {

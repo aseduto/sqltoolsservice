@@ -10,10 +10,10 @@ using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage;
 using Microsoft.SqlTools.ServiceLayer.Utility;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 {
@@ -109,28 +109,28 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         #region Eventing
 
         /// <summary>
-        /// Asynchronous handler for when saving query results succeeds
+        /// Handler for when saving query results succeeds
         /// </summary>
         /// <param name="parameters">Request parameters for identifying the request</param>
-        public delegate Task SaveAsAsyncEventHandler(SaveResultsRequestParams parameters);
+        public delegate void SaveAsEventHandler(SaveResultsRequestParams parameters);
 
         /// <summary>
-        /// Asynchronous handler for when saving query results fails
+        /// Handler for when saving query results fails
         /// </summary>
         /// <param name="parameters">Request parameters for identifying the request</param>
         /// <param name="message">Message to send back describing why the request failed</param>
-        public delegate Task SaveAsFailureAsyncEventHandler(SaveResultsRequestParams parameters, string message);
+        public delegate void SaveAsFailureEventHandler(SaveResultsRequestParams parameters, string message);
 
         /// <summary>
-        /// Asynchronous handler for when a resultset has completed
+        /// Handler for when a resultset has completed
         /// </summary>
         /// <param name="resultSet">The result set that completed</param>
-        public delegate Task ResultSetAsyncEventHandler(ResultSet resultSet);
+        public delegate void ResultSetEventHandler(ResultSet resultSet);
 
         /// <summary>
         /// Event that will be called when the result set has completed execution
         /// </summary>
-        public event ResultSetAsyncEventHandler ResultCompletion;
+        public event ResultSetEventHandler ResultCompletion;
 
         #endregion
 
@@ -366,10 +366,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             finally
             {
                 // Fire off a result set completion event if we have one
-                if (ResultCompletion != null)
-                {
-                    await ResultCompletion(this);
-                }
+                ResultCompletion?.Invoke(this);
             }
         }
 
@@ -427,7 +424,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// <param name="successHandler">Handler for a successful write of all rows</param>
         /// <param name="failureHandler">Handler for unsuccessful write of all rows</param>
         public void SaveAs(SaveResultsRequestParams saveParams, IFileStreamFactory fileFactory,
-            SaveAsAsyncEventHandler successHandler, SaveAsFailureAsyncEventHandler failureHandler)
+            SaveAsEventHandler successHandler, SaveAsFailureEventHandler failureHandler)
         {
             // Sanity check the save params and file factory
             Validate.IsNotNull(nameof(saveParams), saveParams);
@@ -483,29 +480,20 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                             var row = fileReader.ReadRow(fileOffsets[i], i, Columns);
                             fileWriter.WriteRow(row, Columns);
                         }
-                        if (successHandler != null)
-                        {
-                            await successHandler(saveParams);
-                        }
+                        successHandler?.Invoke(saveParams);
                     }
                 }
                 catch (Exception e)
                 {
                     fileFactory.DisposeFile(saveParams.FilePath);
-                    if (failureHandler != null)
-                    {
-                        await failureHandler(saveParams, e.Message);
-                    }
+                    failureHandler?.Invoke(saveParams, e.Message);
                 }
             });
             
             // Add exception handling to the save task
-            Task taskWithHandling = saveAsTask.ContinueWithOnFaulted(async t =>
+            Task taskWithHandling = saveAsTask.ContinueWithOnFaulted(t =>
             {
-                if (failureHandler != null)
-                {
-                    await failureHandler(saveParams, t.Exception.Message);
-                }
+                failureHandler?.Invoke(saveParams, t.Exception.Message);
             });
 
             // If saving the task fails, return a failure

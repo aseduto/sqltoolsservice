@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteRequests
 {
@@ -28,7 +28,6 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteReques
     /// </summary>
     public class SimpleExecuteResult
     {
-
         /// <summary>
         /// The number of rows that was returned with the resultset
         /// </summary>
@@ -45,7 +44,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteReques
         public DbCellValue[][] Rows { get; set; }
     }
 
-    public class SimpleExecuteRequest
+    public static class SimpleExecuteRequest
     {
         public static readonly
             RequestType<SimpleExecuteParams, SimpleExecuteResult> Type =

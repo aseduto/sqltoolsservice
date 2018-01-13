@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteRequests
 {
@@ -16,7 +16,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteReques
         public string OwnerUri { get; set; }
     }
 
-    public class ResultSetCompleteEvent
+    public static class ResultSetCompleteEvent
     {
         public static readonly
             EventType<ResultSetEventParams> Type =

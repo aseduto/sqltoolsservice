@@ -2,7 +2,7 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteRequests
 {
@@ -23,14 +23,14 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteReques
         public string OwnerUri { get; set; }
     }
 
-    public class BatchCompleteEvent
+    public static class BatchCompleteEvent
     {
         public static readonly 
             EventType<BatchEventParams> Type =
             EventType<BatchEventParams>.Create("query/batchComplete");
     }
 
-    public class BatchStartEvent
+    public static class BatchStartEvent
     {
         public static readonly
             EventType<BatchEventParams> Type =

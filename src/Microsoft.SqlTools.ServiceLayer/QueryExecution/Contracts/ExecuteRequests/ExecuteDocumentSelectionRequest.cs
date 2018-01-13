@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteRequests
 {
@@ -18,7 +18,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteReques
         public SelectionData QuerySelection { get; set; }
     }
 
-    public class ExecuteDocumentSelectionRequest
+    public static class ExecuteDocumentSelectionRequest
     {
         public static readonly
             RequestType<ExecuteDocumentSelectionParams, ExecuteRequestResult> Type =

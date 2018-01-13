@@ -8,7 +8,6 @@ using System.Data;
 using System.Data.Common;
 using System.Data.SqlTypes;
 using System.Diagnostics;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts
 {
@@ -190,7 +189,6 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts
                     }
                     break;
             }
-
 
             if (IsUdt)
             {

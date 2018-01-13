@@ -14,8 +14,8 @@ using System.Threading.Tasks;
 using Microsoft.SqlTools.ServiceLayer.Connection.ReliableConnection;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage;
-using Microsoft.SqlTools.Utility;
 using System.Globalization;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 {
@@ -85,37 +85,37 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         #region Events
 
         /// <summary>
-        /// Asynchronous handler for when batches are completed
+        /// Handler for when batches are completed
         /// </summary>
         /// <param name="batch">The batch that completed</param>
-        public delegate Task BatchAsyncEventHandler(Batch batch);
+        public delegate void BatchEventHandler(Batch batch);
 
         /// <summary>
-        /// Asynchronous handler for when a message is emitted by the sql connection
+        /// Handler for when a message is emitted by the sql connection
         /// </summary>
         /// <param name="message">The message that was emitted</param>
-        public delegate Task BatchAsyncMessageHandler(ResultMessage message);
+        public delegate void BatchMessageHandler(ResultMessage message);
 
         /// <summary>
         /// Event that will be called when the batch has completed execution
         /// </summary>
-        public event BatchAsyncEventHandler BatchCompletion;
+        public event BatchEventHandler BatchCompletion;
 
         /// <summary>
         /// Event that will be called when a message has been emitted
         /// </summary>
-        public event BatchAsyncMessageHandler BatchMessageSent;
+        public event BatchMessageHandler BatchMessageSent;
 
         /// <summary>
         /// Event to call when the batch has started execution
         /// </summary>
-        public event BatchAsyncEventHandler BatchStart;
+        public event BatchEventHandler BatchStart;
 
         /// <summary>
         /// Event that will be called when the resultset has completed execution. It will not be
         /// called from the Batch but from the ResultSet instance
         /// </summary>
-        public event ResultSet.ResultSetAsyncEventHandler ResultSetCompletion;
+        public event ResultSet.ResultSetEventHandler ResultSetCompletion;
 
         #endregion
 
@@ -237,11 +237,8 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             }
 
             // Notify that we've started execution
-            if (BatchStart != null)
-            {
-                await BatchStart(this);
-            }
-            
+            BatchStart?.Invoke(this);
+
             try
             {
                 await DoExecute(conn, cancellationToken);
@@ -249,13 +246,13 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             catch (TaskCanceledException)
             {
                 // Cancellation isn't considered an error condition
-                await SendMessage(SR.QueryServiceQueryCancelled, false);
+                SendMessage(SR.QueryServiceQueryCancelled, false);
                 throw;
             }
             catch (Exception e)
             {
                 HasError = true;
-                await SendMessage(SR.QueryServiceQueryFailed(e.Message), true);
+                SendMessage(SR.QueryServiceQueryFailed(e.Message), true);
                 throw;
             }
             finally
@@ -272,10 +269,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 executionEndTime = DateTime.Now;
 
                 // Fire an event to signify that the batch has completed
-                if (BatchCompletion != null)
-                {
-                    await BatchCompletion(this);
-                }
+                BatchCompletion?.Invoke(this);
             }
 
         }
@@ -285,7 +279,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             bool canContinue = true;
             int timesLoop = this.BatchExecutionCount;
 
-            await SendMessageIfExecutingMultipleTimes(SR.EE_ExecutionInfo_InitializingLoop, false);
+            SendMessageIfExecutingMultipleTimes(SR.EE_ExecutionInfo_InitializingLoop, false);
 
             while (canContinue && timesLoop > 0)
             {
@@ -300,20 +294,20 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     if (canContinue)
                     {
                         // If it's a multi-batch, we notify the user that we're ignoring a single failure.
-                        await SendMessageIfExecutingMultipleTimes(SR.EE_BatchExecutionError_Ignoring, false);
+                        SendMessageIfExecutingMultipleTimes(SR.EE_BatchExecutionError_Ignoring, false);
                     }
                 }
                 timesLoop--;
             }
 
-            await SendMessageIfExecutingMultipleTimes(string.Format(CultureInfo.CurrentCulture, SR.EE_ExecutionInfo_FinalizingLoop, this.BatchExecutionCount), false);
+            SendMessageIfExecutingMultipleTimes(string.Format(CultureInfo.CurrentCulture, SR.EE_ExecutionInfo_FinalizingLoop, this.BatchExecutionCount), false);
         }
 
-        private async Task SendMessageIfExecutingMultipleTimes(string message, bool isError)
+        private void SendMessageIfExecutingMultipleTimes(string message, bool isError)
         {
             if (IsExecutingMultipleTimes())
             {
-                await SendMessage(message, isError);
+                SendMessage(message, isError);
             }
         }
 
@@ -398,7 +392,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     // were emitted, records returned), output a "successful" message
                     if (!messagesSent)
                     {
-                        await SendMessage(SR.QueryServiceCompletedSuccessfully, false);
+                        SendMessage(SR.QueryServiceCompletedSuccessfully, false);
                     }
                 }
             }
@@ -464,7 +458,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// <param name="successHandler">Delegate to call when request successfully completes</param>
         /// <param name="failureHandler">Delegate to call if the request fails</param>
         public void SaveAs(SaveResultsRequestParams saveParams, IFileStreamFactory fileFactory,
-            ResultSet.SaveAsAsyncEventHandler successHandler, ResultSet.SaveAsFailureAsyncEventHandler failureHandler)
+            ResultSet.SaveAsEventHandler successHandler, ResultSet.SaveAsFailureEventHandler failureHandler)
         {
             // Get the result set to save
             ResultSet resultSet;
@@ -486,7 +480,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 
         #region Private Helpers
 
-        private async Task SendMessage(string message, bool isError)
+        private void SendMessage(string message, bool isError)
         {
             // If the message event is null, this is a no-op
             if (BatchMessageSent == null)
@@ -496,7 +490,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 
             // State that we've sent any message, and send it
             messagesSent = true;
-            await BatchMessageSent(new ResultMessage(message, isError, Id));
+            BatchMessageSent(new ResultMessage(message, isError, Id));
         }
 
         /// <summary>
@@ -512,7 +506,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             string message = args.RecordCount == 1
                 ? SR.QueryServiceAffectedOneRow
                 : SR.QueryServiceAffectedRows(args.RecordCount);
-            SendMessage(message, false).Wait();
+            SendMessage(message, false);
         }
 
         /// <summary>
@@ -524,7 +518,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// <param name="args">Arguments from the event</param>
         private void ServerMessageHandler(object sender, SqlInfoMessageEventArgs args)
         {
-            SendMessage(args.Message, false).Wait();
+            SendMessage(args.Message, false);
         }
 
         /// <summary>
@@ -547,7 +541,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 if (errors.Any(error => error.Class == 11 && error.Number == 0))
                 {
                     // User cancellation error, add the single message
-                    await SendMessage(SR.QueryServiceQueryCancelled, false);
+                    SendMessage(SR.QueryServiceQueryCancelled, false);
                     canIgnore = false;
                 }
                 else
@@ -559,13 +553,13 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                         string message = string.Format("Msg {0}, Level {1}, State {2}, Line {3}{4}{5}",
                             error.Number, error.Class, error.State, lineNumber,
                             Environment.NewLine, error.Message);
-                        await SendMessage(message, true);
+                        SendMessage(message, true);
                     }
                 }
             }
             else
             {
-                await SendMessage(dbe.Message, true);
+                SendMessage(dbe.Message, true);
             }
             return canIgnore;
         }

@@ -3,7 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts
 {
@@ -40,7 +40,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts
         public ExecutionPlan ExecutionPlan { get; set; }
     }
 
-    public class QueryExecutionPlanRequest
+    public static class QueryExecutionPlanRequest
     {
         public static readonly
             RequestType<QueryExecutionPlanParams, QueryExecutionPlanResult> Type =

@@ -15,9 +15,9 @@ using Microsoft.SqlTools.ServiceLayer.Connection.ReliableConnection;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
-using Microsoft.SqlTools.Utility;
 using Microsoft.SqlTools.ServiceLayer.BatchParser.ExecutionEngineCode;
 using System.Collections.Generic;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
@@ -150,44 +150,44 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// Delegate type for callback when a query completes or fails
         /// </summary>
         /// <param name="query">The query that completed</param>
-        public delegate Task QueryAsyncEventHandler(Query query);
+        public delegate void QueryEventHandler(Query query);
         
         /// <summary>
         /// Delegate type for callback when a query fails
         /// </summary>
         /// <param name="query">Query that raised the event</param>
         /// <param name="exception">Exception that caused the query to fail</param>
-        public delegate Task QueryAsyncErrorEventHandler(Query query, Exception exception);
+        public delegate void QueryErrorEventHandler(Query query, Exception exception);
         
         /// <summary>
         /// Event to be called when a batch is completed.
         /// </summary>
-        public event Batch.BatchAsyncEventHandler BatchCompleted;
+        public event Batch.BatchEventHandler BatchCompleted;
 
         /// <summary>
         /// Event that will be called when a message has been emitted
         /// </summary>
-        public event Batch.BatchAsyncMessageHandler BatchMessageSent;
+        public event Batch.BatchMessageHandler BatchMessageSent;
 
         /// <summary>
         /// Event to be called when a batch starts execution.
         /// </summary>
-        public event Batch.BatchAsyncEventHandler BatchStarted;
+        public event Batch.BatchEventHandler BatchStarted;
 
         /// <summary>
         /// Callback for when the query has completed successfully
         /// </summary>
-        public event QueryAsyncEventHandler QueryCompleted;
+        public event QueryEventHandler QueryCompleted;
 
         /// <summary>
         /// Callback for when the query has failed
         /// </summary>
-        public event QueryAsyncErrorEventHandler QueryFailed;
+        public event QueryErrorEventHandler QueryFailed;
 
         /// <summary>
         /// Event to be called when a resultset has completed.
         /// </summary>
-        public event ResultSet.ResultSetAsyncEventHandler ResultSetCompleted;
+        public event ResultSet.ResultSetEventHandler ResultSetCompleted;
 
         #endregion
 
@@ -278,13 +278,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         public void Execute()
         {
             ExecutionTask = Task.Run(ExecuteInternal)
-                .ContinueWithOnFaulted(async t =>
-                {
-                    if (QueryFailed != null)
-                    {
-                        await QueryFailed(this, t.Exception);
-                    }
-                });
+                .ContinueWithOnFaulted(t => { QueryFailed?.Invoke(this, t.Exception); });
         }
 
         /// <summary>
@@ -333,7 +327,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// <param name="successHandler">Delegate to call when the request completes successfully</param>
         /// <param name="failureHandler">Delegate to call if the request fails</param>
         public void SaveAs(SaveResultsRequestParams saveParams, IFileStreamFactory fileFactory, 
-            ResultSet.SaveAsAsyncEventHandler successHandler, ResultSet.SaveAsFailureAsyncEventHandler failureHandler)
+            ResultSet.SaveAsEventHandler successHandler, ResultSet.SaveAsFailureEventHandler failureHandler)
         {
             // Sanity check to make sure that the batch is within bounds
             if (saveParams.BatchIndex < 0 || saveParams.BatchIndex >= Batches.Length)
@@ -362,14 +356,8 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 // Don't actually execute if there aren't any batches to execute
                 if (Batches.Length == 0)
                 {
-                    if (BatchMessageSent != null)
-                    {
-                        await BatchMessageSent(new ResultMessage(SR.QueryServiceCompletedSuccessfully, false, null));
-                    }
-                    if (QueryCompleted != null)
-                    {
-                        await QueryCompleted(this);
-                    }
+                    BatchMessageSent?.Invoke(new ResultMessage(SR.QueryServiceCompletedSuccessfully, false, null));
+                    QueryCompleted?.Invoke(this);
                     return;
                 }
     
@@ -407,18 +395,12 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 }
 
                 // Call the query execution callback
-                if (QueryCompleted != null)
-                {
-                    await QueryCompleted(this);
-                }
+                QueryCompleted?.Invoke(this);
             }
             catch (Exception e)
             {
                 // Call the query failure callback
-                if (QueryFailed != null)
-                {
-                    await QueryFailed(this, e);
-                }
+                QueryFailed?.Invoke(this, e);
             }
             finally
             {
@@ -500,7 +482,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// </summary>
         private bool DoesSupportExecutionPlan(ConnectionInfo connectionInfo) {
             // Determining which execution plan options may be applied (may be added to for pre-yukon support)
-            return (!connectionInfo.IsSqlDW && connectionInfo.MajorVersion >= 9);
+            return !connectionInfo.IsSqlDW && connectionInfo.MajorVersion >= 9;
         }
 
         #endregion
