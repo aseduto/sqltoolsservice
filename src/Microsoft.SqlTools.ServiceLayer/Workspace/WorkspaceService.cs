@@ -8,10 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Hosting;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
-using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Workspace
 {
@@ -118,7 +119,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Workspace
 
         #region Public Methods
 
-        public void InitializeService(ServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost)
         {
             // Create a workspace that will handle state for the session
             Workspace = new Workspace();
@@ -332,7 +333,6 @@ namespace Microsoft.SqlTools.ServiceLayer.Workspace
                 Logger.Write(LogLevel.Error, "Unknown error " + ex.ToString());
                 // Swallow exceptions here to prevent us from crashing
                 // TODO: this probably means the ScriptFile model is in a bad state or out of sync with the actual file; we should recover here
-                return;
             }
         }  
 

@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Microsoft.SqlTools.Utility;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Workspace.Contracts
 {

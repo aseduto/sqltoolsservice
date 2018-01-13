@@ -9,9 +9,9 @@ using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Linq;
-using Microsoft.SqlTools.Utility;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 using System.Runtime.InteropServices;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Workspace
