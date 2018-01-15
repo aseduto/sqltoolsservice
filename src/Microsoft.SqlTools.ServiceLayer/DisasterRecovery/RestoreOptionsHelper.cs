@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using Microsoft.SqlTools.Dmp.Hosting.Utility;
+using Microsoft.SqlTools.ServiceLayer.Capabilities.Contracts;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery.RestoreOperation;
 

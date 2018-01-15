@@ -4,6 +4,7 @@
 //
 
 using System.Collections.Generic;
+using Microsoft.SqlTools.ServiceLayer.Capabilities.Contracts;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery;
 
 namespace Microsoft.SqlTools.ServiceLayer.Utility
