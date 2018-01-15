@@ -4,6 +4,7 @@
 //
 
 using Microsoft.SqlTools.Dmp.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.Profiler.Contracts
 {

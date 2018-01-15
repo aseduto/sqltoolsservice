@@ -6,7 +6,6 @@
 using System.Collections.Generic;
 using Microsoft.SqlTools.ServiceLayer.TaskServices;
 using Microsoft.SqlTools.ServiceLayer.Utility;
-using Microsoft.SqlTools.Utility;
 using Newtonsoft.Json.Linq;
 
 namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts
