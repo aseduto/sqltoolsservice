@@ -12,6 +12,7 @@ using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Metadata.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Utility;
+using Microsoft.SqlTools.ServiceLayer.Utility.Extensions;
 
 namespace Microsoft.SqlTools.ServiceLayer.Metadata
 {
@@ -67,7 +68,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Metadata
         {
             try
             {
-                Func<Task> requestHandler = async () =>
+                Action requestHandler = () =>
                 {
                     ConnectionInfo connInfo;
                     MetadataService.ConnectionServiceInstance.TryFindConnection(
@@ -89,7 +90,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Metadata
                     });
                 };
 
-                Task task = Task.Run(async () => await requestHandler()).ContinueWithOnFaulted(t =>
+                Task task = Task.Run(() => requestHandler()).ContinueWithOnFaulted(t =>
                 {
                     requestContext.SendError(t.Exception.ToString());
                 });
@@ -106,27 +107,27 @@ namespace Microsoft.SqlTools.ServiceLayer.Metadata
         /// <summary>
         /// Handle a table metadata query request
         /// </summary>        
-        internal static async Task HandleGetTableRequest(
+        internal static void HandleGetTableRequest(
             TableMetadataParams metadataParams,
             RequestContext<TableMetadataResult> requestContext)
         {
-            await HandleGetTableOrViewRequest(metadataParams, "table", requestContext);
+            HandleGetTableOrViewRequest(metadataParams, "table", requestContext);
         }
 
         /// <summary>
         /// Handle a view metadata query request
         /// </summary>        
-        internal static async Task HandleGetViewRequest(
+        internal static void HandleGetViewRequest(
             TableMetadataParams metadataParams,
             RequestContext<TableMetadataResult> requestContext)
         {
-            await HandleGetTableOrViewRequest(metadataParams, "view", requestContext);
+            HandleGetTableOrViewRequest(metadataParams, "view", requestContext);
         }
 
         /// <summary>
         /// Handle a table pr view metadata query request
         /// </summary>        
-        private static async Task HandleGetTableOrViewRequest(
+        private static void HandleGetTableOrViewRequest(
             TableMetadataParams metadataParams,
             string objectType,
             RequestContext<TableMetadataResult> requestContext)

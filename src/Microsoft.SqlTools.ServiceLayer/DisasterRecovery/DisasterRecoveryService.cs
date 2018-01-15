@@ -2,9 +2,9 @@
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
+
 using System;
 using System.Data.SqlClient;
-using System.Threading.Tasks;
 using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.Dmp.Hosting.Utility;
@@ -231,7 +231,7 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
         /// <summary>
         /// Handles a restore config info request
         /// </summary>
-        internal async Task HandleRestoreConfigInfoRequest(
+        internal void HandleRestoreConfigInfoRequest(
             RestoreConfigInfoRequestParams restoreConfigInfoParams,
             RequestContext<RestoreConfigInfoResponse> requestContext)
         {
@@ -250,19 +250,19 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
                 {
                     response.ErrorMessage = SR.RestoreNotSupported;
                 }
-                await requestContext.SendResult(response);
+                requestContext.SendResult(response);
             }
             catch (Exception ex)
             {
                 response.ErrorMessage = ex.Message;
-                await requestContext.SendResult(response);
+                requestContext.SendResult(response);
             }
         }
 
         /// <summary>
         /// Handles a restore request
         /// </summary>
-        internal async Task HandleRestoreRequest(
+        internal void HandleRestoreRequest(
             RestoreParams restoreParams,
             RequestContext<RestoreResponse> requestContext)
         {
@@ -305,20 +305,20 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
                     response.ErrorMessage = SR.RestoreNotSupported;
                 }
 
-                await requestContext.SendResult(response);
+                requestContext.SendResult(response);
             }
             catch (Exception ex)
             {
                 response.Result = false;
                 response.ErrorMessage = ex.Message;
-                await requestContext.SendResult(response);
+                requestContext.SendResult(response);
             }
         }
 
         /// <summary>
         /// Handles a backup request
         /// </summary>
-        internal async Task HandleBackupRequest(
+        internal void HandleBackupRequest(
             BackupParams backupParams,
             RequestContext<BackupResponse> requestContext)
         {
@@ -348,11 +348,11 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
                     response.Result = false;
                 }
 
-                await requestContext.SendResult(response);
+                requestContext.SendResult(response);
             }
             catch (Exception ex)
             {
-                await requestContext.SendError(ex.ToString());
+                requestContext.SendError(ex.ToString());
             }
         }
 

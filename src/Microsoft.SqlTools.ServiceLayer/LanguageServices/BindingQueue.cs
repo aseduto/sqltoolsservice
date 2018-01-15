@@ -9,7 +9,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.SqlTools.Dmp.Hosting.Utility;
-using Microsoft.SqlTools.ServiceLayer.Utility;
+using Microsoft.SqlTools.ServiceLayer.Utility.Extensions;
 
 namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 {    

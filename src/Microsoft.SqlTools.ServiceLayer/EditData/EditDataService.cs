@@ -287,27 +287,24 @@ namespace Microsoft.SqlTools.ServiceLayer.EditData
 
             // Setup callback for successful query creation
             // NOTE: We do not want to set the task completion source, since we will continue executing the query after
-            Func<Query, Task<bool>> queryCreateSuccessCallback = q => Task.FromResult(true);
+            Func<Query, bool> queryCreateSuccessCallback = q => true;
 
             // Setup callback for failed query creation
-            Func<string, Task> queryCreateFailureCallback = m =>
+            Action<string> queryCreateFailureCallback = m =>
             {
                 taskCompletion.SetResult(new EditSession.EditSessionQueryExecutionState(null, m));
-                return Task.FromResult(0);
             };
 
             // Setup callback for successful query execution
-            Query.QueryAsyncEventHandler queryCompleteSuccessCallback = q =>
+            Query.QueryEventHandler queryCompleteSuccessCallback = q =>
             {
                 taskCompletion.SetResult(new EditSession.EditSessionQueryExecutionState(q));
-                return Task.FromResult(0);
             };
 
             // Setup callback for failed query execution
-            Query.QueryAsyncErrorEventHandler queryCompleteFailureCallback = (q, e) =>
+            Query.QueryErrorEventHandler queryCompleteFailureCallback = (q, e) =>
             {
                 taskCompletion.SetResult(new EditSession.EditSessionQueryExecutionState(null));
-                return Task.FromResult(0);
             };
 
             // Execute the query
@@ -316,7 +313,7 @@ namespace Microsoft.SqlTools.ServiceLayer.EditData
                 Query = query,
                 OwnerUri = ownerUri
             };
-            await queryExecutionService.InterServiceExecuteQuery(executeParams, null, eventSender,
+            queryExecutionService.InterServiceExecuteQuery(executeParams, null, eventSender,
                 queryCreateSuccessCallback, queryCreateFailureCallback,
                 queryCompleteSuccessCallback, queryCompleteFailureCallback);
 

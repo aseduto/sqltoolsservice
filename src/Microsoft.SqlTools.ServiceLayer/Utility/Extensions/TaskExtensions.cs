@@ -6,9 +6,9 @@
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Utility;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
 
-namespace Microsoft.SqlTools.ServiceLayer.Utility
+namespace Microsoft.SqlTools.ServiceLayer.Utility.Extensions
 {
     public static class TaskExtensions
     {

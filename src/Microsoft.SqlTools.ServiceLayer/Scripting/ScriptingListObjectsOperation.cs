@@ -9,6 +9,7 @@ using System.Data.SqlClient;
 using Microsoft.SqlServer.Management.SqlScriptPublish;
 using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Utility.Extensions;
 
 namespace Microsoft.SqlTools.ServiceLayer.Scripting
 {

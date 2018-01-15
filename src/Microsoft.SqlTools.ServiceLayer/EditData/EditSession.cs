@@ -95,7 +95,7 @@ namespace Microsoft.SqlTools.ServiceLayer.EditData
         /// <exception cref="InvalidOperationException">
         /// When session is already initialized or in progress of initializing
         /// </exception>
-        public void Initialize(EditInitializeParams initParams, Connector connector, QueryRunner queryRunner, Func<Task> successHandler, Func<Exception, Task> errorHandler)
+        public void Initialize(EditInitializeParams initParams, Connector connector, QueryRunner queryRunner, Action successHandler, Action<Exception> errorHandler)
         {
             if (IsInitialized)
             {
@@ -182,7 +182,7 @@ namespace Microsoft.SqlTools.ServiceLayer.EditData
         /// <param name="connection">The connection to use for executing the query</param>
         /// <param name="successHandler">Callback to perform when the commit process has finished</param>
         /// <param name="errorHandler">Callback to perform if the commit process has failed at some point</param>
-        public void CommitEdits(DbConnection connection, Func<Task> successHandler, Func<Exception, Task> errorHandler)
+        public void CommitEdits(DbConnection connection, Action successHandler, Action<Exception> errorHandler)
         {
             ThrowIfNotInitialized();
 
@@ -405,7 +405,7 @@ namespace Microsoft.SqlTools.ServiceLayer.EditData
         #region Private Helpers
 
         private async Task InitializeInternal(EditInitializeParams initParams, Connector connector,
-            QueryRunner queryRunner, Func<Task> successHandler, Func<Exception, Task> failureHandler)
+            QueryRunner queryRunner, Action successHandler, Action<Exception> failureHandler)
         {
             try
             {
@@ -430,11 +430,11 @@ namespace Microsoft.SqlTools.ServiceLayer.EditData
                 objectMetadata.Extend(associatedResultSet.Columns);
 
                 // Step 4) Return our success
-                await successHandler();
+                successHandler();
             }
             catch (Exception e)
             {
-                await failureHandler(e);
+                failureHandler(e);
             }
         }
 
@@ -445,7 +445,7 @@ namespace Microsoft.SqlTools.ServiceLayer.EditData
                 : FromSqlScript.DecodeMultipartIdentifier(initParams.ObjectName);
         }
 
-        private async Task CommitEditsInternal(DbConnection connection, Func<Task> successHandler, Func<Exception, Task> errorHandler)
+        private async Task CommitEditsInternal(DbConnection connection, Action successHandler, Action<Exception> errorHandler)
         {
             try
             {
@@ -469,11 +469,11 @@ namespace Microsoft.SqlTools.ServiceLayer.EditData
                     RowEditBase re;
                     EditCache.TryRemove(editOperation.RowId, out re);
                 }
-                await successHandler();
+                successHandler();
             }
             catch (Exception e)
             {
-                await errorHandler(e);
+                errorHandler(e);
             }
         }
 

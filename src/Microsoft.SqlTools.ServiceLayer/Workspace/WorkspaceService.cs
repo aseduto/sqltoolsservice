@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.Dmp.Hosting.Utility;
-using Microsoft.SqlTools.ServiceLayer.Hosting;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 
 namespace Microsoft.SqlTools.ServiceLayer.Workspace
@@ -125,10 +124,10 @@ namespace Microsoft.SqlTools.ServiceLayer.Workspace
             Workspace = new Workspace();
 
             // Register the handlers for when changes to the workspae occur
-            serviceHost.SetEventHandler(DidChangeTextDocumentNotification.Type, HandleDidChangeTextDocumentNotification);
-            serviceHost.SetEventHandler(DidOpenTextDocumentNotification.Type, HandleDidOpenTextDocumentNotification);
-            serviceHost.SetEventHandler(DidCloseTextDocumentNotification.Type, HandleDidCloseTextDocumentNotification);
-            serviceHost.SetEventHandler(DidChangeConfigurationNotification<TConfig>.Type, HandleDidChangeConfigurationNotification);
+            serviceHost.SetAsyncEventHandler(DidChangeTextDocumentNotification.Type, HandleDidChangeTextDocumentNotification);
+            serviceHost.SetAsyncEventHandler(DidOpenTextDocumentNotification.Type, HandleDidOpenTextDocumentNotification);
+            serviceHost.SetAsyncEventHandler(DidCloseTextDocumentNotification.Type, HandleDidCloseTextDocumentNotification);
+            serviceHost.SetAsyncEventHandler(DidChangeConfigurationNotification<TConfig>.Type, HandleDidChangeConfigurationNotification);
             
             // Register an initialization handler that sets the workspace path
             serviceHost.RegisterInitializeTask(async (parameters, contect) =>

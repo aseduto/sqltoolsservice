@@ -4,8 +4,6 @@
 //
 
 using System.Collections.Generic;
-using Microsoft.SqlTools.Hosting.Contracts;
-using Microsoft.SqlTools.Hosting.Hosting.Contracts;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery;
 
 namespace Microsoft.SqlTools.ServiceLayer.Utility

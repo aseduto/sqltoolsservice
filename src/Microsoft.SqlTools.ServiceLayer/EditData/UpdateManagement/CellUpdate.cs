@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.EditData.Contracts;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Utility.Extensions;
 using Microsoft.SqlTools.ServiceLayer.Utility.SqlScriptFormatters;
 
 namespace Microsoft.SqlTools.ServiceLayer.EditData.UpdateManagement
