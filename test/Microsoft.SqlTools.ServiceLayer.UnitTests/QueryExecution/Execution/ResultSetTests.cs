@@ -55,11 +55,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
         {
             // Setup: Create a callback for resultset completion
             ResultSetSummary resultSummaryFromCallback = null;
-            ResultSet.ResultSetAsyncEventHandler callback = r =>
-            {
-                resultSummaryFromCallback = r.Summary;
-                return Task.FromResult(0);
-            };
+            ResultSet.ResultSetEventHandler callback = r => { resultSummaryFromCallback = r.Summary; };
 
             // If:
             // ... I create a new resultset with a valid db data reader that has data
@@ -127,11 +123,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
 
             // ... Create a callback for resultset completion
             ResultSetSummary resultSummary = null;
-            ResultSet.ResultSetAsyncEventHandler callback = r =>
-            {
-                resultSummary = r.Summary;
-                return Task.FromResult(0);
-            };
+            ResultSet.ResultSetEventHandler callback = r => { resultSummary = r.Summary; };
 
             // If:
             // ... I create a new resultset with a valid db data reader that is FOR XML/JSON

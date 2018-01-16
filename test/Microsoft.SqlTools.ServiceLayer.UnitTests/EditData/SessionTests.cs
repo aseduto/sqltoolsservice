@@ -311,7 +311,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
         [Theory]
         [MemberData(nameof(InitializeNullParamsData))]
         public void InitializeNullParams(EditInitializeParams initParams, EditSession.Connector c,
-            EditSession.QueryRunner qr, Func<Task> sh, Func<Exception, Task> fh)
+            EditSession.QueryRunner qr, Action sh, Action<Exception> fh)
         {
             // Setup:
             // ... Create a session that hasn't been initialized
@@ -984,7 +984,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             // If: I attempt to commit with a null connection
             // Then: I should get an exception
             Assert.Throws<ArgumentNullException>(
-                () => s.CommitEdits(null, () => Task.CompletedTask, e => Task.CompletedTask));
+                () => s.CommitEdits(null, DoNothingSuccessHandler, DoNothingFailureHandler));
         }
 
         [Fact]
@@ -999,7 +999,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
 
             // If: I attempt to commit with a null success handler
             // Then: I should get an exception
-            Assert.Throws<ArgumentNullException>(() => s.CommitEdits(conn, null, e => Task.CompletedTask));
+            Assert.Throws<ArgumentNullException>(() => s.CommitEdits(conn, null, DoNothingFailureHandler));
         }
 
         [Fact]
@@ -1014,7 +1014,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
 
             // If: I attempt to commit with a null success handler
             // Then: I should get an exception
-            Assert.Throws<ArgumentNullException>(() => s.CommitEdits(conn, () => Task.CompletedTask, null));
+            Assert.Throws<ArgumentNullException>(() => s.CommitEdits(conn, DoNothingSuccessHandler, null));
         }
 
         [Fact]
@@ -1032,7 +1032,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             // If: I attempt to commit while a task is in progress
             // Then: I should get an exception
             Assert.Throws<InvalidOperationException>(
-                () => s.CommitEdits(conn, () => Task.CompletedTask, e => Task.CompletedTask));
+                () => s.CommitEdits(conn, DoNothingSuccessHandler, DoNothingFailureHandler));
         }
 
         [Fact]
@@ -1055,11 +1055,9 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             s.CommitEdits(conn, 
                 () => {
                     successCalled = true;
-                    return Task.FromResult(0);
                 },
                 e => {
                     failureCalled = true;
-                    return Task.FromResult(0);
                 });
             await s.CommitTask;
 
@@ -1096,14 +1094,8 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             bool successCalled = false;
             bool failureCalled = false;
             s.CommitEdits(conn,
-                () => {
-                    successCalled = true;
-                    return Task.FromResult(0);
-                },
-                e => {
-                    failureCalled = true;
-                    return Task.FromResult(0);
-                });
+                () => { successCalled = true; },
+                e => { failureCalled = true; });
             await s.CommitTask;
 
             // Then:
@@ -1215,31 +1207,31 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             get { return q => Task.FromResult<EditSession.EditSessionQueryExecutionState>(null); }
         }
 
-        private static Func<Task> DoNothingSuccessHandler
+        private static Action DoNothingSuccessHandler
         {
-            get { return () => Task.FromResult(0); }
+            get { return () => { }; }
         }
 
-        private static Func<Exception, Task> DoNothingFailureHandler
+        private static Action<Exception> DoNothingFailureHandler
         {
-            get { return e => Task.FromResult(0); }
+            get { return e => { }; }
         }
 
-        private static Mock<Func<Task>> DoNothingSuccessMock
+        private static Mock<Action> DoNothingSuccessMock
         {
             get {
-                Mock<Func<Task>> successHandler = new Mock<Func<Task>>();
-                successHandler.Setup(f => f()).Returns(Task.FromResult(0));
+                Mock<Action> successHandler = new Mock<Action>();
+                successHandler.Setup(f => f());
                 return successHandler;
             }
         }
 
-        private static Mock<Func<Exception, Task>> DoNothingFailureMock
+        private static Mock<Action<Exception>> DoNothingFailureMock
         {
             get
             {
-                Mock<Func<Exception, Task>> failureHandler = new Mock<Func<Exception, Task>>();
-                failureHandler.Setup(f => f(It.IsAny<Exception>())).Returns(Task.FromResult(0));
+                Mock<Action<Exception>> failureHandler = new Mock<Action<Exception>>();
+                failureHandler.Setup(f => f(It.IsAny<Exception>()));
                 return failureHandler;
             }
         }

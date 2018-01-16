@@ -14,7 +14,6 @@ using Microsoft.SqlTools.ServiceLayer.QueryExecution.DataStorage;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
 using Microsoft.SqlTools.ServiceLayer.Test.Common;
 using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
-using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
 using Moq;
 using Xunit;
@@ -26,7 +25,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
         #region CSV Tests
 
         [Fact]
-        public async Task SaveResultsCsvNonExistentQuery()
+        public void SaveResultsCsvNonExistentQuery()
         {
             // Given: A working query and workspace service
             WorkspaceService<SqlToolsSettings> ws = Common.GetPrimedWorkspaceService(null);
@@ -40,7 +39,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             var evf = new EventFlowValidator<SaveResultRequestResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await qes.HandleSaveResultsAsCsvRequest(saveParams, evf.Object);
+            qes.HandleSaveResultsAsCsvRequest(saveParams, evf.Object);
 
             // Then:
             // ... An error event should have been fired
@@ -60,7 +59,8 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             // ... The query execution service has executed a query with results
             var executeParams = new ExecuteDocumentSelectionParams { QuerySelection = null, OwnerUri = Constants.OwnerUri };
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
-            await qes.HandleExecuteRequest(executeParams, executeRequest.Object);
+            
+            qes.HandleExecuteRequest(executeParams, executeRequest.Object);
             await qes.ActiveQueries[Constants.OwnerUri].ExecutionTask;
 
             // If: I attempt to save a result set and get it to throw because of invalid column selection
@@ -81,7 +81,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
                 .Complete();
 
 
-            await qes.HandleSaveResultsAsCsvRequest(saveParams, efv.Object);
+            qes.HandleSaveResultsAsCsvRequest(saveParams, efv.Object);
             await qes.ActiveQueries[saveParams.OwnerUri]
                 .Batches[saveParams.BatchIndex]
                 .ResultSets[saveParams.ResultSetIndex]
@@ -105,7 +105,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             // ... The query execution service has executed a query with results
             var executeParams = new ExecuteDocumentSelectionParams {QuerySelection = null, OwnerUri = Constants.OwnerUri};
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
-            await qes.HandleExecuteRequest(executeParams, executeRequest.Object);
+            qes.HandleExecuteRequest(executeParams, executeRequest.Object);
             await qes.ActiveQueries[Constants.OwnerUri].ExecutionTask;
 
             // If: I attempt to save a result set from a query
@@ -121,7 +121,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
                 .AddStandardResultValidator()
                 .Complete();
 
-            await qes.HandleSaveResultsAsCsvRequest(saveParams, efv.Object);
+            qes.HandleSaveResultsAsCsvRequest(saveParams, efv.Object);
             await qes.ActiveQueries[saveParams.OwnerUri]
                 .Batches[saveParams.BatchIndex]
                 .ResultSets[saveParams.ResultSetIndex]
@@ -138,7 +138,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
         #region JSON tests
 
         [Fact]
-        public async Task SaveResultsJsonNonExistentQuery()
+        public void SaveResultsJsonNonExistentQuery()
         {
             // Given: A working query and workspace service
             WorkspaceService<SqlToolsSettings> ws = Common.GetPrimedWorkspaceService(null);
@@ -152,7 +152,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             var efv = new EventFlowValidator<SaveResultRequestResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await qes.HandleSaveResultsAsJsonRequest(saveParams, efv.Object);
+            qes.HandleSaveResultsAsJsonRequest(saveParams, efv.Object);
 
             // Then:
             // ... An error event should have been fired
@@ -172,7 +172,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             // ... The query execution service has executed a query with results
             var executeParams = new ExecuteDocumentSelectionParams { QuerySelection = null, OwnerUri = Constants.OwnerUri };
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
-            await qes.HandleExecuteRequest(executeParams, executeRequest.Object);
+            qes.HandleExecuteRequest(executeParams, executeRequest.Object);
             await qes.ActiveQueries[Constants.OwnerUri].ExecutionTask;
 
             // If: I attempt to save a result set and get it to throw because of invalid column selection
@@ -191,7 +191,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             var efv = new EventFlowValidator<SaveResultRequestResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await qes.HandleSaveResultsAsJsonRequest(saveParams, efv.Object);
+            qes.HandleSaveResultsAsJsonRequest(saveParams, efv.Object);
             await qes.ActiveQueries[saveParams.OwnerUri]
                 .Batches[saveParams.BatchIndex]
                 .ResultSets[saveParams.ResultSetIndex]
@@ -215,7 +215,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             // ... The query execution service has executed a query with results
             var executeParams = new ExecuteDocumentSelectionParams { QuerySelection = null, OwnerUri = Constants.OwnerUri };
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
-            await qes.HandleExecuteRequest(executeParams, executeRequest.Object);
+            qes.HandleExecuteRequest(executeParams, executeRequest.Object);
             await qes.ActiveQueries[Constants.OwnerUri].ExecutionTask;
 
             // If: I attempt to save a result set from a query
@@ -230,7 +230,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             var efv = new EventFlowValidator<SaveResultRequestResult>()
                 .AddStandardResultValidator()
                 .Complete();
-            await qes.HandleSaveResultsAsJsonRequest(saveParams, efv.Object);
+            qes.HandleSaveResultsAsJsonRequest(saveParams, efv.Object);
             await qes.ActiveQueries[saveParams.OwnerUri]
                 .Batches[saveParams.BatchIndex]
                 .ResultSets[saveParams.ResultSetIndex]
@@ -261,7 +261,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             var efv = new EventFlowValidator<SaveResultRequestResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await qes.HandleSaveResultsAsExcelRequest(saveParams, efv.Object);
+            qes.HandleSaveResultsAsExcelRequest(saveParams, efv.Object);
 
             // Then:
             // ... An error event should have been fired
@@ -281,7 +281,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             // ... The query execution service has executed a query with results
             var executeParams = new ExecuteDocumentSelectionParams { QuerySelection = null, OwnerUri = Constants.OwnerUri };
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
-            await qes.HandleExecuteRequest(executeParams, executeRequest.Object);
+            qes.HandleExecuteRequest(executeParams, executeRequest.Object);
             await qes.ActiveQueries[Constants.OwnerUri].ExecutionTask;
 
             // If: I attempt to save a result set and get it to throw because of invalid column selection
@@ -300,7 +300,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             var efv = new EventFlowValidator<SaveResultRequestResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await qes.HandleSaveResultsAsExcelRequest(saveParams, efv.Object);
+            qes.HandleSaveResultsAsExcelRequest(saveParams, efv.Object);
             await qes.ActiveQueries[saveParams.OwnerUri]
                 .Batches[saveParams.BatchIndex]
                 .ResultSets[saveParams.ResultSetIndex]
@@ -324,7 +324,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             // ... The query execution service has executed a query with results
             var executeParams = new ExecuteDocumentSelectionParams { QuerySelection = null, OwnerUri = Constants.OwnerUri };
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
-            await qes.HandleExecuteRequest(executeParams, executeRequest.Object);
+            qes.HandleExecuteRequest(executeParams, executeRequest.Object);
             await qes.ActiveQueries[Constants.OwnerUri].ExecutionTask;
 
             // If: I attempt to save a result set from a query
@@ -339,7 +339,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.SaveResults
             var efv = new EventFlowValidator<SaveResultRequestResult>()
                 .AddStandardResultValidator()
                 .Complete();
-            await qes.HandleSaveResultsAsExcelRequest(saveParams, efv.Object);
+            qes.HandleSaveResultsAsExcelRequest(saveParams, efv.Object);
             await qes.ActiveQueries[saveParams.OwnerUri]
                 .Batches[saveParams.BatchIndex]
                 .ResultSets[saveParams.ResultSetIndex]

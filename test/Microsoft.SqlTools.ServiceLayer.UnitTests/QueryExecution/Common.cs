@@ -9,6 +9,7 @@ using System.Data.Common;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution;
@@ -21,7 +22,6 @@ using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Test.Common;
 using Moq;
 using Moq.Protected;
-using HostingProtocol = Microsoft.SqlTools.Hosting.Protocol;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
 {
@@ -121,9 +121,9 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
         }
 
         public static async Task AwaitExecution(QueryExecutionService service, ExecuteDocumentSelectionParams qeParams,
-            HostingProtocol.RequestContext<ExecuteRequestResult> requestContext)
+            RequestContext<ExecuteRequestResult> requestContext)
         {
-            await service.HandleExecuteRequest(qeParams, requestContext);
+            service.HandleExecuteRequest(qeParams, requestContext);
             if (service.ActiveQueries.ContainsKey(qeParams.OwnerUri) && service.ActiveQueries[qeParams.OwnerUri].ExecutionTask != null)
             {
                 await service.ActiveQueries[qeParams.OwnerUri].ExecutionTask;

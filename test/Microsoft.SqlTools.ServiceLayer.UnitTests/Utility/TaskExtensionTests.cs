@@ -5,7 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.ServiceLayer.Utility;
+using Microsoft.SqlTools.ServiceLayer.Utility.Extensions;
 using Xunit;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Utility

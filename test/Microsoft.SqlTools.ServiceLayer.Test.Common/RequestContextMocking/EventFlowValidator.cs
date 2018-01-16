@@ -5,10 +5,9 @@
 
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Contracts;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Moq;
 using Xunit;
 
@@ -45,8 +44,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
                         EventObject = p,
                         EventType = EventTypes.Event
                     });
-                })
-                .Returns(Task.FromResult(0));
+                });
 
             return this;
         }
@@ -101,8 +99,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
                 {
                     EventObject = r,
                     EventType = EventTypes.Result
-                }))
-                .Returns(Task.FromResult(0));
+                }));
 
             // Add general handler for error event
             requestContext.AddErrorHandling((msg, code) =>

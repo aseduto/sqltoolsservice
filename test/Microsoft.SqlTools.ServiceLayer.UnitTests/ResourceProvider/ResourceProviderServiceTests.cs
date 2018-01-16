@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Azure.Management.Sql.Models;
 using Microsoft.SqlTools.Extensibility;
 using Microsoft.SqlTools.Hosting.Protocol;
 using Microsoft.SqlTools.ResourceProvider;
@@ -15,11 +16,11 @@ using Microsoft.SqlTools.ResourceProvider.Core.Authentication;
 using Microsoft.SqlTools.ResourceProvider.Core.Contracts;
 using Microsoft.SqlTools.ResourceProvider.Core.Firewall;
 using Microsoft.SqlTools.ResourceProvider.DefaultImpl;
-using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
+using Microsoft.SqlTools.ServiceLayer.UnitTests.OldUtilities;
 using Moq;
 using Xunit;
 
-namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
+namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ResourceProvider
 {
     public class ResourceProviderServiceTests
     {
@@ -35,7 +36,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
             ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(ResourceProviderHostLoader.GetResourceProviderExtensionDlls());
             ServiceProvider.RegisterSingleService<IAzureAuthenticationManager>(AuthenticationManagerMock.Object);
             ServiceProvider.RegisterSingleService<IAzureResourceManager>(ResourceManagerMock.Object);
-            HostLoader.InitializeHostedServices(ServiceProvider, HostMock.Object);
+            ResourceProviderHostLoader.InitializeHostedServices(ServiceProvider, HostMock.Object);
             ResourceProviderService = ServiceProvider.GetService<ResourceProviderService>();
         }
 
@@ -138,7 +139,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
             string serverName = "myserver.database.windows.net";
             var sub1Mock = new Mock<IAzureUserAccountSubscriptionContext>();
             var sub2Mock = new Mock<IAzureUserAccountSubscriptionContext>();
-            var server = new SqlAzureResource(new Azure.Management.Sql.Models.Server("Somewhere", 
+            var server = new SqlAzureResource(new Server("Somewhere", 
                 "1234", "myserver", "SQLServer", 
                 null, null, null, null, null, null, null,
                 fullyQualifiedDomainName: serverName));

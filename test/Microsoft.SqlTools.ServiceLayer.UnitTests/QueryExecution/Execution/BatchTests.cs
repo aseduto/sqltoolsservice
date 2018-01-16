@@ -342,11 +342,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
             // ... I call the StatementCompletedHandler
             Batch batch = new Batch(Constants.StandardQuery, Common.SubsectionDocument, Common.Ordinal, MemoryFileSystem.GetFileStreamFactory());
             int messageCalls = 0;
-            batch.BatchMessageSent += args =>
-            {
-                messageCalls++;
-                return Task.FromResult(0);
-            };
+            batch.BatchMessageSent += args => { messageCalls++; };
 
             // Then:
             // ... The message handler for the batch should havve been called twice
@@ -414,32 +410,16 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
             Action<ResultMessage> messageCallback, Action<ResultSet> resultCallback)
         {
             // Setup the callback for batch start
-            batch.BatchStart += b =>
-            {
-                startCallback?.Invoke(b);
-                return Task.FromResult(0);
-            };
+            batch.BatchStart += b => { startCallback?.Invoke(b); };
 
             // Setup the callback for batch completion
-            batch.BatchCompletion += b =>
-            {
-                endCallback?.Invoke(b);
-                return Task.FromResult(0);
-            };
+            batch.BatchCompletion += b => { endCallback?.Invoke(b); };
 
             // Setup the callback for batch messages
-            batch.BatchMessageSent += (m) =>
-            {
-                messageCallback?.Invoke(m);
-                return Task.FromResult(0);
-            };
+            batch.BatchMessageSent += m => { messageCallback?.Invoke(m); };
 
             // Setup the result set completion callback
-            batch.ResultSetCompletion += r =>
-            {
-                resultCallback?.Invoke(r);
-                return Task.FromResult(0);
-            };
+            batch.ResultSetCompletion += r => { resultCallback?.Invoke(r); };
         }
     }
 }

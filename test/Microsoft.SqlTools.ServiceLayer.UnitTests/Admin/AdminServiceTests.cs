@@ -3,12 +3,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using System.Security;
-using Xunit;
-
 using Microsoft.SqlTools.ServiceLayer.Admin;
-using Microsoft.SqlTools.ServiceLayer.Connection;
-using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
+using Xunit;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Admin
 {

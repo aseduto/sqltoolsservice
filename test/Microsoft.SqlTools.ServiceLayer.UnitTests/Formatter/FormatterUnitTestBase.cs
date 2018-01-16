@@ -5,7 +5,7 @@
 
 using System.IO;
 using System.Reflection;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.Extensibility;
 using Microsoft.SqlTools.ServiceLayer.Formatter;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
@@ -20,18 +20,17 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
     {
         public FormatterUnitTestsBase()
         {
-            HostMock = new Mock<IProtocolEndpoint>();
+            HostMock = new Mock<IServiceHost>();
             WorkspaceServiceMock = new Mock<WorkspaceService<SqlToolsSettings>>();
             LanguageServiceMock = new Mock<LanguageService>();
             ServiceProvider = ExtensionServiceProvider.CreateDefaultServiceProvider();
             ServiceProvider.RegisterSingleService(WorkspaceServiceMock.Object);
             ServiceProvider.RegisterSingleService(LanguageServiceMock.Object);
-            HostLoader.InitializeHostedServices(ServiceProvider, HostMock.Object);
             FormatterService = ServiceProvider.GetService<TSqlFormatterService>();
         }
 
         protected ExtensionServiceProvider ServiceProvider { get; private set; }
-        protected Mock<IProtocolEndpoint> HostMock { get; private set; }
+        protected Mock<IServiceHost> HostMock { get; private set; }
         protected Mock<WorkspaceService<SqlToolsSettings>> WorkspaceServiceMock { get; private set; }
         protected Mock<LanguageService> LanguageServiceMock { get; private set; }
 

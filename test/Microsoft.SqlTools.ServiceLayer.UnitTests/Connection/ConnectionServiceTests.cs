@@ -11,7 +11,7 @@ using System.Data.SqlClient;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Test.Common;
@@ -561,7 +561,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Connection
         [Fact]
         public async Task ConnectionChangedEventIsFiredWhenDatabaseContextChanges()
         {
-            var serviceHostMock = new Mock<IProtocolEndpoint>();
+            var serviceHostMock = new Mock<IServiceHost>();
 
             var connectionService = TestObjects.GetTestConnectionService();
             connectionService.ServiceHost = serviceHostMock.Object;

@@ -30,7 +30,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
         [InlineData("")]
         [InlineData(" \t\n\r")]
         [InlineData("Does not exist")]
-        public async Task NullOrMissingSessionId(string sessionId)
+        public void NullOrMissingSessionId(string sessionId)
         {
             // Setup: 
             // ... Create a edit data service
@@ -44,7 +44,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             var efv = new EventFlowValidator<EditDisposeResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await eds.HandleSessionRequest(mockParams, efv.Object, session => null);
+            eds.HandleSessionRequest(mockParams, efv.Object, session => null);
             efv.Validate();
         }
 
@@ -64,7 +64,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             var efv = new EventFlowValidator<EditDisposeResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await eds.HandleSessionRequest(mockParams, efv.Object, s => { throw new Exception(); });
+            eds.HandleSessionRequest(mockParams, efv.Object, s => { throw new Exception(); });
             efv.Validate();
         }
 
@@ -79,7 +79,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
         [InlineData("")]
         [InlineData(" \t\n\r")]
         [InlineData("Does not exist")]
-        public async Task DisposeNullOrMissingSessionId(string sessionId)
+        public void DisposeNullOrMissingSessionId(string sessionId)
         {
             // Setup: Create a edit data service
             var eds = new EditDataService(null, null, null);
@@ -89,7 +89,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             var efv = new EventFlowValidator<EditDisposeResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await eds.HandleDisposeRequest(new EditDisposeParams {OwnerUri = sessionId}, efv.Object);
+            eds.HandleDisposeRequest(new EditDisposeParams {OwnerUri = sessionId}, efv.Object);
             efv.Validate();
         }
 
@@ -104,7 +104,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             var efv = new EventFlowValidator<EditDisposeResult>()
                 .AddResultValidation(Assert.NotNull)
                 .Complete();
-            await eds.HandleDisposeRequest(new EditDisposeParams {OwnerUri = Common.OwnerUri}, efv.Object);
+            eds.HandleDisposeRequest(new EditDisposeParams {OwnerUri = Common.OwnerUri}, efv.Object);
 
             // Then:
             // ... It should have completed successfully
@@ -127,7 +127,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             var efv = new EventFlowValidator<EditDeleteRowResult>()
                 .AddResultValidation(Assert.NotNull)
                 .Complete();
-            await eds.HandleDeleteRowRequest(new EditDeleteRowParams {OwnerUri = Constants.OwnerUri, RowId = 0}, efv.Object);
+            eds.HandleDeleteRowRequest(new EditDeleteRowParams {OwnerUri = Constants.OwnerUri, RowId = 0}, efv.Object);
 
             // Then: 
             // ... It should be successful
@@ -149,7 +149,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             var efv = new EventFlowValidator<EditCreateRowResult>()
                 .AddResultValidation(ecrr => { Assert.True(ecrr.NewRowId > 0); })
                 .Complete();
-            await eds.HandleCreateRowRequest(new EditCreateRowParams { OwnerUri = Constants.OwnerUri }, efv.Object);
+            eds.HandleCreateRowRequest(new EditCreateRowParams { OwnerUri = Constants.OwnerUri }, efv.Object);
 
             // Then:
             // ... It should have been successful
@@ -185,7 +185,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
                 OwnerUri = Constants.OwnerUri,
                 RowId = 0
             };
-            await eds.HandleRevertCellRequest(param, efv.Object);
+            eds.HandleRevertCellRequest(param, efv.Object);
             
             // Then:
             // ... It should have succeeded
@@ -209,7 +209,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             var efv = new EventFlowValidator<EditRevertRowResult>()
                 .AddResultValidation(Assert.NotNull)
                 .Complete();
-            await eds.HandleRevertRowRequest(new EditRevertRowParams { OwnerUri = Constants.OwnerUri, RowId = 0}, efv.Object);
+            eds.HandleRevertRowRequest(new EditRevertRowParams { OwnerUri = Constants.OwnerUri, RowId = 0}, efv.Object);
 
             // Then: 
             // ... It should have succeeded
@@ -244,7 +244,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
                     Assert.True(eucr.IsRowDirty);
                 })
                 .Complete();
-            await eds.HandleUpdateCellRequest(new EditUpdateCellParams { OwnerUri = Constants.OwnerUri, RowId = 0}, efv.Object);
+            eds.HandleUpdateCellRequest(new EditUpdateCellParams { OwnerUri = Constants.OwnerUri, RowId = 0}, efv.Object);
 
             // Then: 
             // ... It should be successful
@@ -289,7 +289,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
         [InlineData(null, "table", "table")]            // Null owner URI
         [InlineData(Common.OwnerUri, null, "table")]    // Null object name
         [InlineData(Common.OwnerUri, "table", null)]    // Null object type
-        public async Task InitializeNullParams(string ownerUri, string objName, string objType)
+        public void InitializeNullParams(string ownerUri, string objName, string objType)
         {
             // Setup: Create an edit data service without a session
             var eds = new EditDataService(null, null, null);
@@ -307,7 +307,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             var efv = new EventFlowValidator<EditInitializeResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await eds.HandleInitializeRequest(initParams, efv.Object);
+            eds.HandleInitializeRequest(initParams, efv.Object);
 
             // Then:
             // ... An error event should have been raised
@@ -336,7 +336,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
             var efv = new EventFlowValidator<EditInitializeResult>()
                 .AddStandardErrorValidation()
                 .Complete();
-            await eds.HandleInitializeRequest(initParams, efv.Object);
+            eds.HandleInitializeRequest(initParams, efv.Object);
             
             // Then:
             // ... An error event should have been sent
@@ -395,7 +395,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
                     Assert.Null(esrp.Message);
                 })
                 .Complete();
-            await eds.HandleInitializeRequest(initParams, efv.Object);
+            eds.HandleInitializeRequest(initParams, efv.Object);
             await eds.ActiveSessions[Constants.OwnerUri].InitializeTask;
             
             // Then:
@@ -416,9 +416,6 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.EditData
         [InlineData("schema.table", null, new [] { "schema", "table"})]                   // Split object name into schema
         public void ShouldUseSchemaNameIfDefined(string objName, string schemaName, string[] expectedNameParts)
         {
-            // Setup: Create an edit data service without a session
-            var eds = new EditDataService(null, null, null);
-
             // If:
             // ... I have init params with an object and schema parameter
             var initParams = new EditInitializeParams

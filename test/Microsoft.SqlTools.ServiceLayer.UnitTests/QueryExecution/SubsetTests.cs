@@ -135,7 +135,8 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
             var queryService = Common.GetPrimedExecutionService(Common.ExecutionPlanTestDataSet, true, false, false, workspaceService);
             var executeParams = new ExecuteDocumentSelectionParams {QuerySelection = null, OwnerUri = Constants.OwnerUri};
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
-            await queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
+            
+            queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
             await queryService.ActiveQueries[Constants.OwnerUri].ExecutionTask;
 
             // ... And I then ask for a valid set of results from it
@@ -174,7 +175,8 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
             var queryService = Common.GetPrimedExecutionService(Common.StandardTestDataSet, true, false, false, workspaceService);
             var executeParams = new ExecuteDocumentSelectionParams { QuerySelection = null, OwnerUri = Constants.OwnerUri };
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
-            await queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
+            
+            queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
             await queryService.ActiveQueries[Constants.OwnerUri].ExecutionTask;
             queryService.ActiveQueries[Constants.OwnerUri].Batches[0].ResultSets[0].hasBeenRead = false;
 
@@ -196,7 +198,8 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
             var queryService = Common.GetPrimedExecutionService(null, true, false, false, workspaceService);
             var executeParams = new ExecuteDocumentSelectionParams { QuerySelection = null, OwnerUri = Constants.OwnerUri };
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
-            await queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
+            
+            queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
             await queryService.ActiveQueries[Constants.OwnerUri].ExecutionTask;
 
             // ... And I then ask for a set of results from it

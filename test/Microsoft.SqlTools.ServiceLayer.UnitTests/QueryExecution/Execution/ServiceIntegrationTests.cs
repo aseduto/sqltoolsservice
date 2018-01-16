@@ -140,7 +140,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
         #region Inter-Service API Tests
 
         [Fact]
-        public async Task InterServiceExecuteNullExecuteParams()
+        public void InterServiceExecuteNullExecuteParams()
         {
             // Setup: Create a query service
             var qes = new QueryExecutionService(null, null);
@@ -149,12 +149,12 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
 
             // If: I call the inter-service API to execute with a null execute params
             // Then: It should throw
-            await Assert.ThrowsAsync<ArgumentNullException>(
+            Assert.Throws<ArgumentNullException>(
                 () => qes.InterServiceExecuteQuery(null, null, eventSender, null, null, null, null));
         }
 
         [Fact]
-        public async Task InterServiceExecuteNullEventSender()
+        public void InterServiceExecuteNullEventSender()
         {
             // Setup: Create a query service, and execute params
             var qes = new QueryExecutionService(null, null);
@@ -162,33 +162,33 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
 
             // If: I call the inter-service API to execute a query with a a null event sender
             // Then: It should throw
-            await Assert.ThrowsAsync<ArgumentNullException>(
+            Assert.Throws<ArgumentNullException>(
                 () => qes.InterServiceExecuteQuery(executeParams, null, null, null, null, null, null));
         }
 
         [Fact]
-        public async Task InterServiceDisposeNullSuccessFunc()
+        public void InterServiceDisposeNullSuccessFunc()
         {
             // Setup: Create a query service and dispose params
             var qes = new QueryExecutionService(null, null);
-            Func<string, Task> failureFunc = Task.FromResult;
+            Action<string> failureFunc = s => { };
 
             // If: I call the inter-service API to dispose a query with a null success function
             // Then: It should throw
-            await Assert.ThrowsAsync<ArgumentNullException>(
+            Assert.Throws<ArgumentNullException>(
                 () => qes.InterServiceDisposeQuery(Constants.OwnerUri, null, failureFunc));
         }
 
         [Fact]
-        public async Task InterServiceDisposeNullFailureFunc()
+        public void InterServiceDisposeNullFailureFunc()
         {
             // Setup: Create a query service and dispose params
             var qes = new QueryExecutionService(null, null);
-            Func<Task> successFunc = () => Task.FromResult(0);
+            Action successFunc = () => { };
 
             // If: I call the inter-service API to dispose a query with a null success function
             // Then: It should throw
-            await Assert.ThrowsAsync<ArgumentNullException>(
+            Assert.Throws<ArgumentNullException>(
                 () => qes.InterServiceDisposeQuery(Constants.OwnerUri, successFunc, null));
         }
 
@@ -462,7 +462,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
             var efv = new EventFlowValidator<SimpleExecuteResult>()
                 .AddSimpleExecuteErrorValidator(SR.QueryServiceResultSetHasNoResults)
                 .Complete();
-            await queryService.HandleSimpleExecuteRequest(queryParams, efv.Object);
+            queryService.HandleSimpleExecuteRequest(queryParams, efv.Object);
 
             await Task.WhenAll(queryService.ActiveSimpleExecuteRequests.Values);
 
@@ -485,7 +485,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
             var efv = new EventFlowValidator<SimpleExecuteResult>()
                 .AddSimpleExecuteQueryResultValidator(Common.StandardTestDataSet)
                 .Complete();
-            await queryService.HandleSimpleExecuteRequest(queryParams, efv.Object);
+            queryService.HandleSimpleExecuteRequest(queryParams, efv.Object);
 
             await Task.WhenAll(queryService.ActiveSimpleExecuteRequests.Values);
 
@@ -512,10 +512,8 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
             var efv2 = new EventFlowValidator<SimpleExecuteResult>()
                 .AddSimpleExecuteQueryResultValidator(Common.StandardTestDataSet)
                 .Complete();
-            Task qT1 = queryService.HandleSimpleExecuteRequest(queryParams, efv1.Object);
-            Task qT2 = queryService.HandleSimpleExecuteRequest(queryParams, efv2.Object);
-
-            await Task.WhenAll(qT1, qT2);
+            queryService.HandleSimpleExecuteRequest(queryParams, efv1.Object);
+            queryService.HandleSimpleExecuteRequest(queryParams, efv2.Object);
 
             await Task.WhenAll(queryService.ActiveSimpleExecuteRequests.Values);
 
