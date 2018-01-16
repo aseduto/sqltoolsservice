@@ -901,6 +901,22 @@ namespace Microsoft.SqlTools.ServiceLayer
             }
         }
 
+        public static string ObjectExplorerServiceProviderNotSet
+        {
+            get
+            {
+                return Keys.GetString(Keys.ObjectExplorerServiceProviderNotSet);
+            }
+        }
+
+        public static string ObjectExplorerServiceNotFound
+        {
+            get
+            {
+                return Keys.GetString(Keys.ObjectExplorerServiceNotFound);
+            }
+        }
+
         public static string TreeNodeError
         {
             get
@@ -4098,6 +4114,12 @@ namespace Microsoft.SqlTools.ServiceLayer
 
 
             public const string SqlScriptFormatterScalarTypeMissingScale = "SqlScriptFormatterScalarTypeMissingScale";
+
+
+            public const string ObjectExplorerServiceProviderNotSet = "ObjectExplorerServiceProviderNotSet";
+
+
+            public const string ObjectExplorerServiceNotFound = "ObjectExplorerServiceNotFound";
 
 
             public const string TreeNodeError = "TreeNodeError";

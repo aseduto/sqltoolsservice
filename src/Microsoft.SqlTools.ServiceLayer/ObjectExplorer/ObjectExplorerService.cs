@@ -134,8 +134,8 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
             this.serviceHost = serviceHost;
             // Register handlers for requests
             serviceHost.SetRequestHandler(RefreshRequest.Type, HandleRefreshRequest);
+            serviceHost.SetRequestHandler(ExpandRequest.Type, HandleExpandRequest);
             serviceHost.SetAsyncRequestHandler(CreateSessionRequest.Type, HandleCreateSessionRequest);
-            serviceHost.SetAsyncRequestHandler(ExpandRequest.Type, HandleExpandRequest);
             serviceHost.SetAsyncRequestHandler(CloseSessionRequest.Type, HandleCloseSessionRequest);
             WorkspaceService<SqlToolsSettings> workspaceService = WorkspaceService;
             if (workspaceService != null)
@@ -198,35 +198,31 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
 
         }
 
-        internal async Task HandleExpandRequest(ExpandParams expandParams, RequestContext<bool> context)
+        internal void HandleExpandRequest(ExpandParams expandParams, RequestContext<bool> context)
         {
             Logger.Write(LogLevel.Verbose, "HandleExpandRequest");
 
-            Func<bool> expandNode = () =>
-            {
-                Validate.IsNotNull(nameof(expandParams), expandParams);
-                Validate.IsNotNull(nameof(context), context);
+            Validate.IsNotNull(nameof(expandParams), expandParams);
+            Validate.IsNotNull(nameof(context), context);
 
-                string uri = expandParams.SessionId;
-                ObjectExplorerSession session = null;
-                if (!sessionMap.TryGetValue(uri, out session))
+            string uri = expandParams.SessionId;
+            ObjectExplorerSession session = null;
+            if (!sessionMap.TryGetValue(uri, out session))
+            {
+                Logger.Write(LogLevel.Verbose, $"Cannot expand object explorer node. Couldn't find session for uri. {uri} ");
+                serviceHost.SendEvent(ExpandCompleteNotification.Type, new ExpandResponse
                 {
-                    Logger.Write(LogLevel.Verbose, $"Cannot expand object explorer node. Couldn't find session for uri. {uri} ");
-                    serviceHost.SendEvent(ExpandCompleteNotification.Type, new ExpandResponse
-                    {
-                        SessionId = expandParams.SessionId,
-                        NodePath = expandParams.NodePath,
-                        ErrorMessage = $"Couldn't find session for session: {uri}"
-                    });
-                    return false;
-                }
-                else
-                {
-                    RunExpandTask(session, expandParams);
-                    return true;
-                }
-            };
-            await HandleRequestAsync(expandNode, context, "HandleExpandRequest");
+                    SessionId = expandParams.SessionId,
+                    NodePath = expandParams.NodePath,
+                    ErrorMessage = $"Couldn't find session for session: {uri}"
+                });
+                context.SendResult(false);
+            }
+            else
+            {
+                RunExpandTask(session, expandParams);
+                context.SendResult(true);
+            }
         }
 
         internal void HandleRefreshRequest(RefreshParams refreshParams, RequestContext<bool> context)
@@ -496,7 +492,7 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
             }
             catch(Exception ex)
             {
-                await SendSessionFailedNotification(uri, ex.Message);
+                SendSessionFailedNotification(uri, ex.Message);
                 return null;
             }
         }
@@ -516,14 +512,14 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
                 }
                 else
                 {
-                    await SendSessionFailedNotification(uri, result.ErrorMessage);
+                    SendSessionFailedNotification(uri, result.ErrorMessage);
                     return null;
                 }
                
             }
             catch (Exception ex)
             {
-                await SendSessionFailedNotification(uri, ex.ToString());
+                SendSessionFailedNotification(uri, ex.ToString());
                 return null;
             }
         }
@@ -670,11 +666,11 @@ namespace Microsoft.SqlTools.ServiceLayer.ObjectExplorer
         {
             if (serviceProvider == null)
             {
-                throw new InvalidOperationException(SR.ServiceProviderNotSet);
+                throw new InvalidOperationException(SR.ObjectExplorerServiceProviderNotSet);
             }
             if (connectionService == null)
             {
-                throw new InvalidOperationException(SR.ServiceProviderNotSet);
+                throw new InvalidOperationException(SR.ObjectExplorerServiceProviderNotSet);
             }
         }
 

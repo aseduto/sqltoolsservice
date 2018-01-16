@@ -35,6 +35,9 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
         private ConnectionInfo connectionInfo;
         private Database database;
         private string tempPath;
+        
+        // TODO: Don't use this constant, refer to a constant in the connection service
+        public static readonly string SqlLoginAuthenticationType = "SqlLogin";
 
         // Dictionary that holds the object name (as appears on the TSQL create statement)
         private Dictionary<DeclarationType, string> sqlObjectTypes = new Dictionary<DeclarationType, string>();
@@ -190,7 +193,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
                     // This workaround ensures that a schema name is present by attempting
                     // to get the schema name from the declaration item.
                     // If all fails, the default schema name is assumed to be "dbo"
-                    if ((connectionInfo != null && connectionInfo.ConnectionDetails.AuthenticationType.Equals(Constants.SqlLoginAuthenticationType)) && string.IsNullOrEmpty(schemaName))
+                    if ((connectionInfo != null && connectionInfo.ConnectionDetails.AuthenticationType.Equals(SqlLoginAuthenticationType)) && string.IsNullOrEmpty(schemaName))
                     {
                         string fullObjectName = this.GetFullObjectNameFromQuickInfo(quickInfoText, tokenText, caseSensitivity);
                         schemaName = this.GetSchemaFromDatabaseQualifiedName(fullObjectName, tokenText);
@@ -233,7 +236,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
                 // This workaround ensures that a schema name is present by attempting
                 // to get the schema name from the declaration item.
                 // If all fails, the default schema name is assumed to be "dbo"
-                if ((connectionInfo != null && connectionInfo.ConnectionDetails.AuthenticationType.Equals(Constants.SqlLoginAuthenticationType)) && string.IsNullOrEmpty(schemaName))
+                if ((connectionInfo != null && connectionInfo.ConnectionDetails.AuthenticationType.Equals(SqlLoginAuthenticationType)) && string.IsNullOrEmpty(schemaName))
                 {
                     string fullObjectName = databaseQualifiedName;
                     schemaName = this.GetSchemaFromDatabaseQualifiedName(fullObjectName, tokenText);

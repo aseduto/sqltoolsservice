@@ -4,8 +4,6 @@
 //
 
 
-using Microsoft.SqlTools.ServiceLayer.Hosting;
-
 namespace Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts
 {
     public class TaskInfo
@@ -43,13 +41,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts
         /// <summary>
         /// Provider Name
         /// </summary>
-        public string ProviderName
-        {
-            get
-            {
-                return ServiceHost.ProviderName;
-            }
-        }
+        public string ProviderName => "MSSQL";
 
         /// <summary>
         /// Task description

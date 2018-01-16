@@ -314,6 +314,10 @@ SqlScriptFormatterScalarTypeMissingScale = Scalar column missing scale
 ############################################################################
 # Object Explorer Service
 
+ObjectExplorerServiceProviderNotSet = Required services for object explorer service were not assigned
+
+ObjectExplorerServiceNotFound = Object explorer service could not be found
+
 TreeNodeError = Error expanding: {0}
 
 ServerNodeConnectionError = Error connecting to {0}

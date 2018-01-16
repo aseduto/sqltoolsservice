@@ -2353,6 +2353,16 @@
         <target state="new">File Table</target>
         <note></note>
       </trans-unit>
+      <trans-unit id="ObjectExplorerServiceProviderNotSet">
+        <source>Required services for object explorer service were not assigned</source>
+        <target state="new">Required services for object explorer service were not assigned</target>
+        <note></note>
+      </trans-unit>
+      <trans-unit id="ObjectExplorerServiceNotFound">
+        <source>Object explorer service could not be found</source>
+        <target state="new">Object explorer service could not be found</target>
+        <note></note>
+      </trans-unit>
     </body>
   </file>
 </xliff>

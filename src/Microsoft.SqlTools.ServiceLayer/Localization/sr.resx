@@ -638,6 +638,14 @@
     <value>Scalar column missing scale</value>
     <comment></comment>
   </data>
+  <data name="ObjectExplorerServiceProviderNotSet" xml:space="preserve">
+    <value>Required services for object explorer service were not assigned</value>
+    <comment></comment>
+  </data>
+  <data name="ObjectExplorerServiceNotFound" xml:space="preserve">
+    <value>Object explorer service could not be found</value>
+    <comment></comment>
+  </data>
   <data name="TreeNodeError" xml:space="preserve">
     <value>Error expanding: {0}</value>
     <comment></comment>

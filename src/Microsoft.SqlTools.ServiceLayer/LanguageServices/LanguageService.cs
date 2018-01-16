@@ -26,10 +26,10 @@ using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Scripting;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
 using Microsoft.SqlTools.ServiceLayer.Utility;
+using Microsoft.SqlTools.ServiceLayer.Utility.Extensions;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 using Location = Microsoft.SqlTools.ServiceLayer.Workspace.Contracts.Location;
-using ServiceHost = Microsoft.SqlTools.ServiceLayer.Hosting.ServiceHost;
 
 namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 {
@@ -57,6 +57,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         private const int PrepopulateBindTimeout = 60000;
 
         public const string SQL_LANG = "SQL";
+        public const string SqlFlavor = "MSSQL";
         private const int OneSecond = 1000;
 
         internal const string DefaultBatchSeperator = "GO";
@@ -75,7 +76,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 
         private WorkspaceService<SqlToolsSettings> workspaceServiceInstance;
 
-        private ServiceHost serviceHostInstance;
+        private IServiceHost serviceHostInstance;
 
         private object parseMapLock = new object();
 
@@ -175,10 +176,6 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         {
             get
             {
-                if (this.serviceHostInstance == null)
-                {
-                    this.serviceHostInstance = ServiceHost.Instance;
-                }
                 return this.serviceHostInstance;
             }
             set
@@ -213,8 +210,8 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
             serviceHost.SetRequestHandler(HoverRequest.Type, HandleHoverRequest);
             serviceHost.SetRequestHandler(CompletionRequest.Type, HandleCompletionRequest);
             serviceHost.SetRequestHandler(DefinitionRequest.Type, HandleDefinitionRequest);
-            serviceHost.SetEventHandler(RebuildIntelliSenseNotification.Type, HandleRebuildIntelliSenseNotification);
             serviceHost.SetEventHandler(LanguageFlavorChangeNotification.Type, HandleDidChangeLanguageFlavorNotification);
+            serviceHost.SetAsyncEventHandler(RebuildIntelliSenseNotification.Type, HandleRebuildIntelliSenseNotification);
 
             // Register a no-op shutdown task for validation of the shutdown logic
             serviceHost.RegisterShutdownTask(async (shutdownParams, shutdownRequestContext) =>
@@ -545,6 +542,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                 // check that there is an active connection for the current editor
                 if (connInfo != null)
                 {
+                    // TODO: This isn't being run asynchronously
                     await Task.Run(() =>
                     {
                         ScriptParseInfo scriptInfo = GetScriptParseInfo(connInfo.OwnerUri, createIfNotExists: false);
@@ -567,28 +565,25 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                         }
 
                         // if not in the preview window and diagnostics are enabled then run diagnostics
-                        if (!IsPreviewWindow(scriptFile)
-                            && CurrentWorkspaceSettings.IsDiagnosticsEnabled)
+                        if (!IsPreviewWindow(scriptFile) && CurrentWorkspaceSettings.IsDiagnosticsEnabled)
                         {
-                            RunScriptDiagnostics(
-                                new ScriptFile[] { scriptFile },
-                                eventContext);
+                            RunScriptDiagnostics(new ScriptFile[] { scriptFile }, eventContext);
                         }
 
                         // Send a notification to signal that autocomplete is ready
-                        ServiceHostInstance.SendEvent(IntelliSenseReadyNotification.Type, new IntelliSenseReadyParams() {OwnerUri = connInfo.OwnerUri});
+                        eventContext.SendEvent(IntelliSenseReadyNotification.Type, new IntelliSenseReadyParams() {OwnerUri = connInfo.OwnerUri});
                     });
                 }
                 else
                 {
                     // Send a notification to signal that autocomplete is ready
-                    await ServiceHostInstance.SendEvent(IntelliSenseReadyNotification.Type, new IntelliSenseReadyParams() {OwnerUri = rebuildParams.OwnerUri});
+                    eventContext.SendEvent(IntelliSenseReadyNotification.Type, new IntelliSenseReadyParams() {OwnerUri = rebuildParams.OwnerUri});
                 }
             }
             catch (Exception ex)
             {
                 Logger.Write(LogLevel.Error, "Unknown error " + ex.ToString());
-                await ServiceHostInstance.SendEvent(IntelliSenseReadyNotification.Type, new IntelliSenseReadyParams() {OwnerUri = rebuildParams.OwnerUri});
+                eventContext.SendEvent(IntelliSenseReadyNotification.Type, new IntelliSenseReadyParams() {OwnerUri = rebuildParams.OwnerUri});
             }
         }
 
@@ -622,7 +617,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
 
                         foreach (var scriptFile in CurrentWorkspace.GetOpenedFiles())
                         {
-                            await DiagnosticsHelper.ClearScriptDiagnostics(scriptFile.ClientFilePath, eventContext);
+                            DiagnosticsHelper.ClearScriptDiagnostics(scriptFile.ClientFilePath, eventContext);
                         }
                     }
                     // otherwise rerun diagnostic analysis on all opened SQL files
@@ -644,7 +639,7 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
         /// "MSSQL" language flavor returned by our service
         /// </summary>
         /// <param name="info"></param>
-        public async Task HandleDidChangeLanguageFlavorNotification(
+        public void HandleDidChangeLanguageFlavorNotification(
             LanguageFlavorChangeParams changeParams,
             EventContext eventContext) 
         {
@@ -654,14 +649,14 @@ namespace Microsoft.SqlTools.ServiceLayer.LanguageServices
                 Validate.IsNotNull(nameof(changeParams), changeParams.Uri);
                 bool shouldBlock = false;
                 if (SQL_LANG.Equals(changeParams.Language, StringComparison.OrdinalIgnoreCase)) {
-                    shouldBlock = !ServiceHost.ProviderName.Equals(changeParams.Flavor, StringComparison.OrdinalIgnoreCase);
+                    shouldBlock = !SqlFlavor.Equals(changeParams.Flavor, StringComparison.OrdinalIgnoreCase);
                 }
 
                 if (shouldBlock) {
                     this.nonMssqlUriMap.AddOrUpdate(changeParams.Uri, true, (k, oldValue) => true);
                     if (CurrentWorkspace.ContainsFile(changeParams.Uri))
                     {
-                        await DiagnosticsHelper.ClearScriptDiagnostics(changeParams.Uri, eventContext);
+                        DiagnosticsHelper.ClearScriptDiagnostics(changeParams.Uri, eventContext);
                     }
                 }
                 else
