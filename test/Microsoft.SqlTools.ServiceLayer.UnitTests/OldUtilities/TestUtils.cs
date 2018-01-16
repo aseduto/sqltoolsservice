@@ -1,18 +1,14 @@
-﻿//
-// Copyright (c) Microsoft. All rights reserved.
-// Licensed under the MIT license. See LICENSE file in the project root for full license information.
-//
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
 using Moq;
 using Xunit;
 
-namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Utility
+namespace Microsoft.SqlTools.ServiceLayer.UnitTests.OldUtilities
 {
+    // TODO: Remove this once the resource provider and credentials service are moved to the new hosting
     public static class TestUtils
     {
 

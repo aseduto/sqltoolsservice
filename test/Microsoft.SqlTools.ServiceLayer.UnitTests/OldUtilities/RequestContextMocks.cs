@@ -1,25 +1,27 @@
-﻿//
+//
 // Copyright (c) Microsoft. All rights reserved.
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
 using System;
-using Microsoft.SqlTools.Dmp.Contracts;
-using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using System.Threading.Tasks;
+using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Hosting.Protocol.Contracts;
 using Moq;
 
-namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
+namespace Microsoft.SqlTools.ServiceLayer.UnitTests.OldUtilities
 {
+    // TODO: Remove this once the resource provider and credentials service are moved to the new hosting
     public static class RequestContextMocks
     {
-
         public static Mock<RequestContext<TResponse>> Create<TResponse>(Action<TResponse> resultCallback)
         {
             var requestContext = new Mock<RequestContext<TResponse>>();
 
             // Setup the mock for SendResult
             var sendResultFlow = requestContext
-                .Setup(rc => rc.SendResult(It.IsAny<TResponse>()));
+                .Setup(rc => rc.SendResult(It.IsAny<TResponse>()))
+                .Returns(Task.FromResult(0));
             if (resultCallback != null)
             {
                 sendResultFlow.Callback(resultCallback);
@@ -34,7 +36,8 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
         {
             var flow = mock.Setup(rc => rc.SendEvent(
                 It.Is<EventType<TParams>>(m => m == expectedEvent),
-                It.IsAny<TParams>()));
+                It.IsAny<TParams>()))
+                .Returns(Task.FromResult(0));
             if (eventCallback != null)
             {
                 flow.Callback(eventCallback);
@@ -48,7 +51,8 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
             Action<string, int> errorCallback)
         {
             // Setup the mock for SendError
-            var sendErrorFlow = mock.Setup(rc => rc.SendError(It.IsAny<string>(), It.IsAny<int>()));
+            var sendErrorFlow = mock.Setup(rc => rc.SendError(It.IsAny<string>(), It.IsAny<int>()))
+                .Returns(Task.FromResult(0));
             if (errorCallback != null)
             {
                 sendErrorFlow.Callback<string, int>(errorCallback);

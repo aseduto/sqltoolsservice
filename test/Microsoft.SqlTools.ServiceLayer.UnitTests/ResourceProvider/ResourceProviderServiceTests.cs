@@ -15,11 +15,11 @@ using Microsoft.SqlTools.ResourceProvider.Core.Authentication;
 using Microsoft.SqlTools.ResourceProvider.Core.Contracts;
 using Microsoft.SqlTools.ResourceProvider.Core.Firewall;
 using Microsoft.SqlTools.ResourceProvider.DefaultImpl;
-using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
+using Microsoft.SqlTools.ServiceLayer.UnitTests.OldUtilities;
 using Moq;
 using Xunit;
 
-namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
+namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ResourceProvider
 {
     public class ResourceProviderServiceTests
     {
@@ -35,7 +35,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
             ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(ResourceProviderHostLoader.GetResourceProviderExtensionDlls());
             ServiceProvider.RegisterSingleService<IAzureAuthenticationManager>(AuthenticationManagerMock.Object);
             ServiceProvider.RegisterSingleService<IAzureResourceManager>(ResourceManagerMock.Object);
-            HostLoader.InitializeHostedServices(ServiceProvider, HostMock.Object);
+            ResourceProviderHostLoader.InitializeHostedServices(ServiceProvider, HostMock.Object);
             ResourceProviderService = ServiceProvider.GetService<ResourceProviderService>();
         }
 

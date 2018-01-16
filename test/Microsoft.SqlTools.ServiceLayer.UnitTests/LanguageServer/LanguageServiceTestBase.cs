@@ -4,12 +4,11 @@
 //
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using Microsoft.SqlServer.Management.SqlParser.Binder;
 using Microsoft.SqlServer.Management.SqlParser.MetadataProvider;
 using Microsoft.SqlServer.Management.SqlParser.Parser;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
@@ -17,9 +16,8 @@ using Microsoft.SqlTools.ServiceLayer.SqlContext;
 using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
-using GlobalCommon = Microsoft.SqlTools.ServiceLayer.Test.Common;
 using Moq;
-using Xunit;
+using GlobalCommon = Microsoft.SqlTools.ServiceLayer.Test.Common;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
 {
@@ -90,12 +88,12 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
             langService.BindingQueue = bindingQueue.Object;
 
             // setup the mock for SendResult
+            // TODO: Replace with event flow validation
             requestContext = new Mock<RequestContext<T[]>>();
-            requestContext.Setup(rc => rc.SendResult(It.IsAny<T[]>()))
-                .Returns(Task.FromResult(0));
-            requestContext.Setup(rc => rc.SendError(It.IsAny<string>(), It.IsAny<int>())).Returns(Task.FromResult(0));
-            requestContext.Setup(r => r.SendEvent(It.IsAny<EventType<TelemetryParams>>(), It.IsAny<TelemetryParams>())).Returns(Task.FromResult(0));
-            requestContext.Setup(r => r.SendEvent(It.IsAny<EventType<StatusChangeParams>>(), It.IsAny<StatusChangeParams>())).Returns(Task.FromResult(0));
+            requestContext.Setup(rc => rc.SendResult(It.IsAny<T[]>()));
+            requestContext.Setup(rc => rc.SendError(It.IsAny<string>(), It.IsAny<int>()));
+            requestContext.Setup(r => r.SendEvent(It.IsAny<EventType<TelemetryParams>>(), It.IsAny<TelemetryParams>()));
+            requestContext.Setup(r => r.SendEvent(It.IsAny<EventType<StatusChangeParams>>(), It.IsAny<StatusChangeParams>()));
 
             // setup the IBinder mock
             binder = new Mock<IBinder>();

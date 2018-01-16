@@ -295,25 +295,13 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution.Execution
             Action<ResultMessage> messageCallback)
         {
             // Setup the callback for batch start
-            q.BatchStarted += b =>
-            {
-                startCallback?.Invoke(b);
-                return Task.FromResult(0);
-            };
+            q.BatchStarted += b => { startCallback?.Invoke(b); };
 
             // Setup the callback for batch completion
-            q.BatchCompleted += b =>
-            {
-                endCallback?.Invoke(b);
-                return Task.FromResult(0);
-            };
+            q.BatchCompleted += b => { endCallback?.Invoke(b); };
 
             // Setup the callback for batch messages
-            q.BatchMessageSent += (m) =>
-            {
-                messageCallback?.Invoke(m);
-                return Task.FromResult(0);
-            };
+            q.BatchMessageSent += m => { messageCallback?.Invoke(m); };
         }
     }
 }

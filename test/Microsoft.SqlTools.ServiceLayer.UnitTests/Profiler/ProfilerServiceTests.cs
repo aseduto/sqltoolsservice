@@ -3,12 +3,8 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using System;
-using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.SqlServer.Management.XEvent;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Profiler;
 using Microsoft.SqlTools.ServiceLayer.Profiler.Contracts;
@@ -29,17 +25,16 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Profiler
         /// <returns></returns>
         // TODO: Fix flaky test. See https://github.com/Microsoft/sqltoolsservice/issues/459
         //[Fact]
-        public async Task TestStartProfilingRequest()
+        public void TestStartProfilingRequest()
         {
             string sessionId = null;
             string testUri = "profiler_uri";
             var requestContext = new Mock<RequestContext<StartProfilingResult>>();
             requestContext.Setup(rc => rc.SendResult(It.IsAny<StartProfilingResult>()))
-                .Returns<StartProfilingResult>((result) => 
+                .Callback<StartProfilingResult>((result) => 
                 {
                     // capture the session id for sending the stop message
                     sessionId = result.SessionId;
-                    return Task.FromResult(0);
                 });
 
             var sessionListener = new TestSessionListener();
@@ -55,7 +50,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Profiler
             requestParams.OwnerUri = testUri;
             requestParams.TemplateName = "Standard";
 
-            await profilerService.HandleStartProfilingRequest(requestParams, requestContext.Object);
+            profilerService.HandleStartProfilingRequest(requestParams, requestContext.Object);
 
             // wait a bit for profile sessions to be polled
             Thread.Sleep(500);

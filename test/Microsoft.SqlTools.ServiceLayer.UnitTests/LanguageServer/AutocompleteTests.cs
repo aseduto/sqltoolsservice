@@ -3,23 +3,14 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Microsoft.SqlServer.Management.SqlParser.Binder;
-using Microsoft.SqlServer.Management.SqlParser.MetadataProvider;
-using Microsoft.SqlServer.Management.SqlParser.Parser;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.ServiceLayer.Connection;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
-using Microsoft.SqlTools.ServiceLayer.SqlContext;
-using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
-using Microsoft.SqlTools.ServiceLayer.Workspace;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
-using GlobalCommon = Microsoft.SqlTools.ServiceLayer.Test.Common;
 using Moq;
 using Xunit;
-using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
+using GlobalCommon = Microsoft.SqlTools.ServiceLayer.Test.Common;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
 {
@@ -32,50 +23,48 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
         [Fact]
         public void HandleCompletionRequestDisabled()
         {
+            // TODO: What are these testing?
             InitializeTestObjects();
             langService.CurrentWorkspaceSettings.SqlTools.IntelliSense.EnableIntellisense = false;
-            Assert.NotNull(langService.HandleCompletionRequest(null, null));
+            langService.HandleCompletionRequest(null, null);
         }
 
         [Fact]
         public void HandleCompletionResolveRequestDisabled()
         {
+            // TODO: What are these testing?
             InitializeTestObjects();
             langService.CurrentWorkspaceSettings.SqlTools.IntelliSense.EnableIntellisense = false;
-            Assert.NotNull(langService.HandleCompletionResolveRequest(null, null));
+            langService.HandleCompletionResolveRequest(null, null);
         }
 
         [Fact]
         public void HandleSignatureHelpRequestDisabled()
         {
+            // TODO: What are these testing?
             InitializeTestObjects();
             langService.CurrentWorkspaceSettings.SqlTools.IntelliSense.EnableIntellisense = false;
-            Assert.NotNull(langService.HandleSignatureHelpRequest(null, null));
+            langService.HandleSignatureHelpRequest(null, null);
         }
 
         [Fact]
-        public async Task HandleSignatureHelpRequestNonMssqlFile()
+        public void HandleSignatureHelpRequestNonMssqlFile()
         {
             InitializeTestObjects();
 
             // setup the mock for SendResult
             var signatureRequestContext = new Mock<RequestContext<SignatureHelp>>();
             SignatureHelp result = null;
-            signatureRequestContext.Setup(rc => rc.SendResult(It.IsAny<SignatureHelp>()))
-            .Returns<SignatureHelp>((signature) => {
-                result = signature;
-                return Task.FromResult(0);
-            });
-            signatureRequestContext.Setup(rc => rc.SendError(It.IsAny<string>(), It.IsAny<int>())).Returns(Task.FromResult(0));
-
+            signatureRequestContext.Setup(rc => rc.SendResult(It.IsAny<SignatureHelp>()));
+            signatureRequestContext.Setup(rc => rc.SendError(It.IsAny<string>(), It.IsAny<int>()));
 
             langService.CurrentWorkspaceSettings.SqlTools.IntelliSense.EnableIntellisense = true;
-            await langService.HandleDidChangeLanguageFlavorNotification(new LanguageFlavorChangeParams {
+            langService.HandleDidChangeLanguageFlavorNotification(new LanguageFlavorChangeParams {
                 Uri = textDocument.TextDocument.Uri,
                 Language = LanguageService.SQL_LANG.ToLower(),
                 Flavor = "NotMSSQL"
             }, null);
-            await langService.HandleSignatureHelpRequest(textDocument, signatureRequestContext.Object);
+            langService.HandleSignatureHelpRequest(textDocument, signatureRequestContext.Object);
             // verify that the response was sent with a null response value
             signatureRequestContext.Verify(m => m.SendResult(It.IsAny<SignatureHelp>()), Times.Once());
             Assert.Null(result);
@@ -164,8 +153,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
             InitializeTestObjects();
 
             // request the completion list            
-            Task handleCompletion = langService.HandleCompletionRequest(textDocument, requestContext.Object);
-            handleCompletion.Wait(TaskTimeout);
+            langService.HandleCompletionRequest(textDocument, requestContext.Object);
 
             // verify that send result was called with a completion array
             requestContext.Verify(m => m.SendResult(It.IsAny<CompletionItem[]>()), Times.Once());

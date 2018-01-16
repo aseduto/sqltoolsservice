@@ -6,8 +6,8 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Extensibility;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.ServiceLayer.TaskServices;
 using Microsoft.SqlTools.ServiceLayer.TaskServices.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
@@ -20,7 +20,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.TaskServices
     public class TaskServiceTests : ServiceTestBase
     {
         private TaskService service;
-        private Mock<IProtocolEndpoint> serviceHostMock;
+        private Mock<IServiceHost> serviceHostMock;
         private TaskMetadata taskMetaData = new TaskMetadata
         {
             ServerName = "server name",
@@ -29,7 +29,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.TaskServices
 
         public TaskServiceTests()
         {
-            serviceHostMock = new Mock<IProtocolEndpoint>();
+            serviceHostMock = new Mock<IServiceHost>();
             service = CreateService();
             service.InitializeService(serviceHostMock.Object);
         }
@@ -127,8 +127,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.TaskServices
         {
             TaskService service = new TaskService();
             service.TaskManager = new SqlTaskManager();
-            return CreateProvider()
-                .RegisterSingleService(service);
+            return CreateProvider().RegisterSingleService(service);
         }
     }
 }

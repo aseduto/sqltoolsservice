@@ -4,24 +4,22 @@
 //
 
 using System;
-using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Contracts;
 using Moq;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Utility
 {
     public static class ProtocolEndpointMocks
     {
-        public static Mock<IProtocolEndpoint> AddEventHandling<TParams>(
-            this Mock<IProtocolEndpoint> mock,
+        public static Mock<IServiceHost> AddEventHandling<TParams>(
+            this Mock<IServiceHost> mock,
             EventType<TParams> expectedEvent,
             Action<EventType<TParams>, TParams> eventCallback)
         {
             var flow = mock.Setup(h => h.SendEvent(
                 It.Is<EventType<TParams>>(m => m == expectedEvent),
-                It.IsAny<TParams>()))
-                .Returns(Task.FromResult(0));
+                It.IsAny<TParams>()));
             if (eventCallback != null)
             {
                 flow.Callback(eventCallback);

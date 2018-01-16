@@ -4,10 +4,10 @@
 //
 
 using System.Linq;
-using Microsoft.SqlTools.Hosting.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Capabilities.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Xunit;
-using Microsoft.SqlTools.ServiceLayer.Connection;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Connection
 {

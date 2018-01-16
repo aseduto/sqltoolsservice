@@ -7,18 +7,19 @@ using System;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlServer.Management.Common;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.ObjectExplorer;
 using Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts;
 using Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Nodes;
 using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
+using Microsoft.SqlTools.ServiceLayer.LanguageServices;
+using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
 using Moq;
 using Xunit;
-using Microsoft.SqlTools.ServiceLayer.LanguageServices;
-using Microsoft.SqlServer.Management.Common;
-using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
 {
@@ -27,7 +28,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
     {
         private ObjectExplorerService service;
         private Mock<ConnectionService> connectionServiceMock;
-        private Mock<IProtocolEndpoint> serviceHostMock;
+        private Mock<IServiceHost> serviceHostMock;
         string fakeConnectionString = "Data Source=server;Initial Catalog=database;Integrated Security=False;User Id=user";
         private static ConnectionDetails details = new ConnectionDetails()
         {
@@ -42,7 +43,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
         public ObjectExplorerServiceTests()
         {
             connectionServiceMock = new Mock<ConnectionService>();
-            serviceHostMock = new Mock<IProtocolEndpoint>();
+            serviceHostMock = new Mock<IServiceHost>();
             service = CreateOEService(connectionServiceMock.Object);
             connectionServiceMock.Setup(x => x.RegisterConnectedQueue(It.IsAny<string>(), It.IsAny<IConnectedBindingQueue>()));
             service.InitializeService(serviceHostMock.Object);
@@ -298,7 +299,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
             ExpandResponse result = null;
             serviceHostMock.AddEventHandling(ExpandCompleteNotification.Type, (et, p) => result = p);
 
-            await service.HandleRefreshRequest(expandParams, requestContext);
+            service.HandleRefreshRequest(expandParams, requestContext);
             Task task = service.ExpandTask;
             if (task != null)
             {
@@ -314,7 +315,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
             ExpandResponse result = null;
             serviceHostMock.AddEventHandling(ExpandCompleteNotification.Type, (et, p) => result = p);
 
-            await service.HandleExpandRequest(expandParams, requestContext);
+            service.HandleExpandRequest(expandParams, requestContext);
             Task task = service.ExpandTask;
             if (task != null)
             {

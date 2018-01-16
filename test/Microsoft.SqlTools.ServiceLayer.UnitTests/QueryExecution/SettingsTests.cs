@@ -3,10 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
+using Moq;
 using Newtonsoft.Json.Linq;
 using Xunit;
 
@@ -40,14 +41,14 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
         {
             // NOTE: Only testing displayBitAsNumber for now because it is the only one piped through
             string settingsJson = @"{"
-                                        + @"""params"": {"
-                                        + @""""+settingsPropertyName+@""": {"
-                                        + @"""query"": {"
-                                        + @"displayBitAsNumber: false"
-                                        + @"}"
-                                        + @"}"
-                                        + @"}"
-                                        + @"}";
+                                  + @"""params"": {"
+                                  + @"""" + settingsPropertyName + @""": {"
+                                  + @"""query"": {"
+                                  + @"displayBitAsNumber: false"
+                                  + @"}"
+                                  + @"}"
+                                  + @"}"
+                                  + @"}";
 
             // If: I parse the settings JSON object
             JObject message = JObject.Parse(settingsJson);
@@ -83,7 +84,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
                 }
                     
             };
-            qes.UpdateSettings(settings, null, new EventContext());
+            qes.UpdateSettings(settings, null, new Mock<EventContext>().Object);
 
             // Then: The settings object should match what it was updated to
             Assert.False(qes.Settings.QueryExecutionSettings.DisplayBitAsNumber);

@@ -9,7 +9,6 @@ using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteRequests;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
 using Microsoft.SqlTools.ServiceLayer.Test.Common;
 using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
-using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
 using Moq;
 using Xunit;
@@ -28,7 +27,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
             var executeParams = new ExecuteDocumentSelectionParams { QuerySelection = Common.WholeDocument, OwnerUri = Constants.OwnerUri };
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
 
-            await queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
+            queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
             await queryService.ActiveQueries[Constants.OwnerUri].ExecutionTask;
             queryService.ActiveQueries[Constants.OwnerUri].HasExecuted = false;    // Fake that it hasn't completed execution
 
@@ -39,7 +38,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
                 {
                     Assert.Null(r.Messages);
                 }).Complete();
-            await queryService.HandleCancelRequest(cancelParams, cancelRequest.Object);
+            queryService.HandleCancelRequest(cancelParams, cancelRequest.Object);
 
             // Then:
             // ... The query should not have been disposed
@@ -57,7 +56,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
             var executeParams = new ExecuteDocumentSelectionParams {QuerySelection = Common.WholeDocument, OwnerUri = Constants.OwnerUri};
             var executeRequest = RequestContextMocks.Create<ExecuteRequestResult>(null);
 
-            await queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
+            queryService.HandleExecuteRequest(executeParams, executeRequest.Object);
             await queryService.ActiveQueries[Constants.OwnerUri].ExecutionTask;
 
             // ... And then I request to cancel the query
@@ -68,7 +67,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
                     Assert.False(string.IsNullOrWhiteSpace(r.Messages));
                 }).Complete();
 
-            await queryService.HandleCancelRequest(cancelParams, cancelRequest.Object);
+            queryService.HandleCancelRequest(cancelParams, cancelRequest.Object);
 
             // Then:
             // ... The query should not have been disposed
@@ -77,7 +76,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
         }
 
         [Fact]
-        public async Task CancelNonExistantTest()
+        public void CancelNonExistantTest()
         {
             // If:
             // ... I request to cancel a query that doesn't exist
@@ -90,7 +89,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
                 {
                     Assert.False(string.IsNullOrWhiteSpace(r.Messages));
                 }).Complete();
-            await queryService.HandleCancelRequest(cancelParams, cancelRequest.Object);
+            queryService.HandleCancelRequest(cancelParams, cancelRequest.Object);
             cancelRequest.Validate();
         }
     }

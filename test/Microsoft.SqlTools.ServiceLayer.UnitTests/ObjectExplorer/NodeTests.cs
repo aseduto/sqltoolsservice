@@ -9,7 +9,9 @@ using System.Data.SqlClient;
 using System.Globalization;
 using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlTools.Extensibility;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
+using Microsoft.SqlTools.Dmp.Hosting.Utility;
+using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.ObjectExplorer;
 using Microsoft.SqlTools.ServiceLayer.ObjectExplorer.Contracts;
@@ -18,7 +20,6 @@ using Microsoft.SqlTools.ServiceLayer.ObjectExplorer.SmoModel;
 using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
 using Moq;
 using Xunit;
-using Microsoft.SqlTools.ServiceLayer.Connection;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
 {
@@ -54,7 +55,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
             };
 
             // TODO can all tests use the standard service provider?
-            ServiceProvider = ExtensionServiceProvider.CreateDefaultServiceProvider();
+            ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(new string[] {});
         }
         
         [Fact]
@@ -390,7 +391,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
 
             Mock<SqlDatabaseQuerier> querierMock = new Mock<SqlDatabaseQuerier>();
             querierMock.Setup(q => q.Query(It.IsAny<SmoQueryContext>(), It.IsAny<string>(), false, It.IsAny<IEnumerable<string>>()))
-                .Returns(smoObjectMock.Object.SingleItemAsEnumerable());
+                .Returns(smoObjectMock.Object.AsSingleItemEnumerable());
 
             ServiceProvider.Register<SmoQuerier>(() => new[] { querierMock.Object });
 
