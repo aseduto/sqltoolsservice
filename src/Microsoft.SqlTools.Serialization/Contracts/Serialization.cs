@@ -3,9 +3,10 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Dmp.Contracts;
+using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
 
-namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts
+namespace Microsoft.SqlTools.Serialization.Contracts
 {
     /// <summary>
     /// Class used for storing results and how the results are to be serialized
@@ -50,6 +51,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts
 
     public class SaveAsRequest
     {
+        // NOTE: Until this service uses the new service host, this request type will reference the OLD RequestType
         public static readonly
             RequestType<SaveResultsInfo, SaveResultRequestResult> Type =
             RequestType<SaveResultsInfo, SaveResultRequestResult>.Create("query/saveAs");
