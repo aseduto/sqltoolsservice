@@ -11,8 +11,8 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlTools.Extensibility;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.ServiceLayer.Admin;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery;
@@ -31,7 +31,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
     public class RestoreDatabaseServiceTests : ServiceTestBase
     {
         private ConnectionService _connectService = TestServiceProvider.Instance.ConnectionService;
-        private Mock<IProtocolEndpoint> serviceHostMock;
+        private Mock<IServiceHost> serviceHostMock;
         private DisasterRecoveryService service;
         private string fullBackupFilePath;
         private string[] backupFilesToRecoverDatabase;
@@ -43,7 +43,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
 
         public RestoreDatabaseServiceTests()
         {
-            serviceHostMock = new Mock<IProtocolEndpoint>();
+            serviceHostMock = new Mock<IServiceHost>();
             service = CreateService();
             service.InitializeService(serviceHostMock.Object);
         }
@@ -430,7 +430,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
                     OwnerUri = queryTempFile.FilePath
                 };
 
-                await RunAndVerify<RestorePlanResponse>(
+                RunAndVerify<RestorePlanResponse>(
                     test: (requestContext) => service.HandleRestorePlanRequest(restoreParams, requestContext),
                     verify: ((result) =>
                     {
@@ -456,7 +456,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
                     OwnerUri = queryTempFile.FilePath
                 };
 
-                await RunAndVerify<RestorePlanResponse>(
+                RunAndVerify<RestorePlanResponse>(
                     test: (requestContext) => service.HandleRestorePlanRequest(restoreParams, requestContext),
                     verify: ((result) =>
                     {
@@ -464,7 +464,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
                         Assert.True(result.DbFiles.Any());
                     }));
 
-                await RunAndVerify<bool>(
+                RunAndVerify<bool>(
                    test: (requestContext) => service.HandleCancelRestorePlanRequest(restoreParams, requestContext),
                    verify: ((result) =>
                    {
@@ -489,7 +489,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
                     OwnerUri = queryTempFile.FilePath
                 };
 
-                await RunAndVerify<RestoreConfigInfoResponse>(
+                RunAndVerify<RestoreConfigInfoResponse>(
                     test: (requestContext) => service.HandleRestoreConfigInfoRequest(restoreParams, requestContext),
                     verify: ((result) =>
                     {
@@ -514,7 +514,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
                     OwnerUri = queryTempFile.FilePath
                 };
 
-                await RunAndVerify<RestoreResponse>(
+                RunAndVerify<RestoreResponse>(
                     test: (requestContext) => service.HandleRestoreRequest(restoreParams, requestContext),
                     verify: ((result) =>
                     {
@@ -541,7 +541,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
                     OwnerUri = queryTempFile.FilePath
                 };
 
-                await RunAndVerify<RestorePlanResponse>(
+                RunAndVerify<RestorePlanResponse>(
                     test: (requestContext) => service.HandleRestorePlanRequest(restoreParams, requestContext),
                     verify: ((result) =>
                     {
@@ -737,8 +737,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
 
         protected override RegisteredServiceProvider CreateServiceProviderWithMinServices()
         {
-            return CreateProvider()
-               .RegisterSingleService(new DisasterRecoveryService());
+            return CreateProvider().RegisterSingleService(new DisasterRecoveryService());
         }
 
         public async Task<string[]> CreateBackupSetsToRecoverDatabase()

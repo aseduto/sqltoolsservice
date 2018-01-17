@@ -7,12 +7,13 @@ using System.Collections.Generic;
 using System.Globalization;
 using Microsoft.SqlTools.Credentials;
 using Microsoft.SqlTools.Credentials.Contracts;
+using Microsoft.SqlTools.Credentials.Linux;
 
 namespace Microsoft.SqlTools.ServiceLayer.Test.Common
 {
     public class TestCredentialService
     {
-        private CredentialService credentialService = TestServiceProvider.Instance.CredentialService;
+        private CredentialService credentialService = new CredentialService(null, new StoreConfig());
 
         private static TestCredentialService instance = new TestCredentialService();
 

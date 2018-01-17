@@ -30,30 +30,23 @@ namespace Microsoft.SqlTools.Serialization
             serviceHost.SetRequestHandler(SaveAsRequest.Type, HandleSaveAsRequest);
         }
 
-        public async Task HandleSaveAsRequest(SaveResultsInfo resultsInfo, RequestContext<SaveResultRequestResult> requestContext)
+        public Task HandleSaveAsRequest(SaveResultsInfo resultsInfo, RequestContext<SaveResultRequestResult> requestContext)
         {
-            Func<Task<SaveResultRequestResult>> doSave = () =>
-            {
-                return SaveAsAsync(resultsInfo, requestContext);
-            };
-
-            await HandleRequest(doSave, requestContext, "HandleSaveAsRequest");
+            SaveAs(resultsInfo, requestContext);
+            return Task.FromResult(true);
         }
 
-        public async Task<SaveResultRequestResult> SaveAsAsync(SaveResultsInfo resultsInfo, RequestContext<SaveResultRequestResult> requestContext)
+        public SaveResultRequestResult SaveAs(SaveResultsInfo resultsInfo, RequestContext<SaveResultRequestResult> requestContext)
         {
             // TODO: Refactor currently available serialization code in sqltools to be utilized here
             // Issue here: https://github.com/Microsoft/carbon/issues/1789
             switch (resultsInfo.SaveFormat) {
                 case "json":
                     throw new NotImplementedException("Converting to " + resultsInfo.SaveFormat + " is not implemented.");
-                    break;
                 case "csv":
                     throw new NotImplementedException("Converting to " + resultsInfo.SaveFormat + " is not implemented.");
-                    break;
                 case "excel":
                     throw new NotImplementedException("Converting to " + resultsInfo.SaveFormat + " is not implemented.");
-                    break;
                 default:
                     throw new NotImplementedException("Converting to " + resultsInfo.SaveFormat + " is not implemented.");
 

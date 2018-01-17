@@ -92,7 +92,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Profiler
         /// <summary>
         /// Initializes the Profiler Service instance
         /// </summary>
-        public void InitializeService(ServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost)
         {
             this.ServiceHost = serviceHost;
             this.ServiceHost.SetRequestHandler(StartProfilingRequest.Type, HandleStartProfilingRequest);

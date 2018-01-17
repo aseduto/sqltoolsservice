@@ -14,9 +14,11 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.SqlTools.Dmp.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Channels;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.Hosting.Protocol.Channel;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts.ExecuteRequests;
 using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
@@ -90,7 +92,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
             }
 
             this.clientChannel = new StdioClientChannel(serviceHostExecutable, serviceHostArguments);
-            this.protocolClient = new ProtocolEndpoint(clientChannel, MessageProtocolType.LanguageServer);
+            this.serviceHost = new ServiceHost(clientChannel, new ProviderDetails(), new LanguageServiceCapabilities());
         }
 
         /// <summary>
@@ -102,8 +104,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
             startTime = DateTime.Now;
 
             // Launch the process
-            this.protocolClient.Initialize();
-            await this.protocolClient.Start();
+            this.serviceHost.Start();
             await Task.Delay(1000); // Wait for the service host to start
 
             // If this is a code coverage run, we need access to the service layer separate from open cover
@@ -134,7 +135,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
         /// <summary>
         /// Stop the test driver, and shutdown the sqltoolsservice executable
         /// </summary>
-        public async Task Stop()
+        public void Stop()
         {
             if (IsCoverageRun)
             {
@@ -147,7 +148,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
             }
             else
             {
-                await this.protocolClient.Stop();
+                this.serviceHost.Stop();
             }
         }
 

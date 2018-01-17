@@ -457,7 +457,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             }
 
             // Create the new task
-            Task saveAsTask = new Task(async () =>
+            Task saveAsTask = new Task(() =>
             {
                 try
                 {

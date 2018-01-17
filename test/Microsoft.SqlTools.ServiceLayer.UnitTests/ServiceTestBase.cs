@@ -40,11 +40,11 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests
             VerifyResult<T, TResult>(contextMock, verify, actualResult);
         }
 
-        protected async Task RunAndVerify<T>(Func<RequestContext<T>, Task> test, Action<T> verify)
+        protected void RunAndVerify<T>(Action<RequestContext<T>> test, Action<T> verify)
         {
             T result = default(T);
             var contextMock = RequestContextMocks.Create<T>(r => result = r).AddErrorHandling(null);
-            await test(contextMock.Object);
+            test(contextMock.Object);
             VerifyResult<T>(contextMock, verify, result);
         }
 

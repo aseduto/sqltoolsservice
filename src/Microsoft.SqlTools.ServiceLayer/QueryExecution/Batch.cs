@@ -290,7 +290,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                 catch (DbException dbe)
                 {
                     HasError = true;
-                    canContinue = await UnwrapDbException(dbe);
+                    canContinue = UnwrapDbException(dbe);
                     if (canContinue)
                     {
                         // If it's a multi-batch, we notify the user that we're ignoring a single failure.
@@ -529,7 +529,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// </summary>
         /// <param name="dbe">The exception to unwrap</param>
         /// <returns>true is exception can be ignored when in a loop, false otherwise</returns>
-        private async Task<bool> UnwrapDbException(Exception dbe)
+        private bool UnwrapDbException(Exception dbe)
         {
             bool canIgnore = true;
             SqlException se = dbe as SqlException;

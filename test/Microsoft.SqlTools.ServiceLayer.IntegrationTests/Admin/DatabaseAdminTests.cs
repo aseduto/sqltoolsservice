@@ -3,21 +3,16 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility;
-using Microsoft.SqlTools.ServiceLayer.LanguageServices;
-using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
-using Microsoft.SqlTools.ServiceLayer.Test.Common;
-using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
-using Xunit;
-using Moq;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.ServiceLayer.Admin.Contracts;
-using Microsoft.SqlTools.ServiceLayer.Admin;
 using System;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
+using Microsoft.SqlTools.ServiceLayer.Admin;
+using Microsoft.SqlTools.ServiceLayer.Admin.Contracts;
+using Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility;
+using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
+using Moq;
 
-namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.AdminServices
+
+namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Admin
 {
     /// <summary>
     /// Tests for the ServiceHost Language Service tests
@@ -45,11 +40,11 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.AdminServices
         /// Validate creating a database with valid input
         /// </summary>
         // [Fact]
-        public async void CreateDatabaseWithValidInputTest()
+        public void CreateDatabaseWithValidInputTest()
         {
             var result = GetLiveAutoCompleteTestObjects();
             var requestContext = new Mock<RequestContext<CreateDatabaseResponse>>();
-            requestContext.Setup(x => x.SendResult(It.IsAny<CreateDatabaseResponse>())).Returns(Task.FromResult(new object()));
+            requestContext.Setup(x => x.SendResult(It.IsAny<CreateDatabaseResponse>()));
 
             var databaseInfo = new DatabaseInfo();
             databaseInfo.Options.Add("name", "testdb_" + new Random().Next(10000000, 99999999));
@@ -60,7 +55,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.AdminServices
                 DatabaseInfo = databaseInfo
             };
         
-            await AdminService.HandleCreateDatabaseRequest(dbParams, requestContext.Object);
+            AdminService.HandleCreateDatabaseRequest(dbParams, requestContext.Object);
 
             requestContext.VerifyAll();
         }
@@ -69,18 +64,18 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.AdminServices
         /// Get a default database info object
         /// </summary>
         // [Fact]
-        public async void GetDefaultDatebaseInfoTest()
+        public void GetDefaultDatebaseInfoTest()
         {
             var result = GetLiveAutoCompleteTestObjects();
             var requestContext = new Mock<RequestContext<DefaultDatabaseInfoResponse>>();
-            requestContext.Setup(x => x.SendResult(It.IsAny<DefaultDatabaseInfoResponse>())).Returns(Task.FromResult(new object()));
+            requestContext.Setup(x => x.SendResult(It.IsAny<DefaultDatabaseInfoResponse>()));
 
             var dbParams = new DefaultDatabaseInfoParams
             {
                 OwnerUri = result.ConnectionInfo.OwnerUri
             };
 
-            await AdminService.HandleDefaultDatabaseInfoRequest(dbParams, requestContext.Object);
+            AdminService.HandleDefaultDatabaseInfoRequest(dbParams, requestContext.Object);
 
             requestContext.VerifyAll();
         }
@@ -90,18 +85,18 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.AdminServices
         /// </summary>
         /// Test is failing in code coverage runs. Reenable when stable.
         /// [Fact]
-        public async void GetDatabaseInfoTest()
+        public void GetDatabaseInfoTest()
         {
             var results = GetLiveAutoCompleteTestObjects();
             var requestContext = new Mock<RequestContext<GetDatabaseInfoResponse>>();
-            requestContext.Setup(x => x.SendResult(It.IsAny<GetDatabaseInfoResponse>())).Returns(Task.FromResult(new object()));
+            requestContext.Setup(x => x.SendResult(It.IsAny<GetDatabaseInfoResponse>()));
 
             var dbParams = new GetDatabaseInfoParams
             {
                 OwnerUri = results.ConnectionInfo.OwnerUri
             };
 
-            await AdminService.HandleGetDatabaseInfoRequest(dbParams, requestContext.Object);
+            AdminService.HandleGetDatabaseInfoRequest(dbParams, requestContext.Object);
             
             requestContext.VerifyAll();
         }

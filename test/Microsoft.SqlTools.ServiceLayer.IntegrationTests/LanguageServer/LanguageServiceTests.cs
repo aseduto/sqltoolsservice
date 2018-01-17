@@ -51,7 +51,6 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.LanguageServer
             {
 
             }
-            Assert.True(LanguageService.Instance.Context != null);
             Assert.True(LanguageService.Instance.ConnectionServiceInstance != null);
             Assert.True(LanguageService.Instance.CurrentWorkspaceSettings != null);
             Assert.True(LanguageService.Instance.CurrentWorkspace != null);
@@ -103,7 +102,6 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.LanguageServer
         public async Task GetSignatureHelpReturnsNotNullIfParseInfoInitialized()
         {
             // When we make a connection to a live database
-            Hosting.ServiceHost.SendEventIgnoreExceptions = true;
             var result = LiveConnectionHelper.InitLiveConnectionInfo();
 
             // And we place the cursor after a function that should prompt for signature help

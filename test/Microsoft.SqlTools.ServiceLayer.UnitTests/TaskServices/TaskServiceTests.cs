@@ -35,15 +35,14 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.TaskServices
         }
 
         [Fact]
-        public async Task TaskListRequestErrorsIfParameterIsNull()
+        public void TaskListRequestErrorsIfParameterIsNull()
         {
-            object errorResponse = null;
-            var contextMock = RequestContextMocks.Create<ListTasksResponse>(null)
-                                                 .AddErrorHandling((errorMessage, errorCode) => errorResponse = errorMessage);
+            var efv = new EventFlowValidator<ListTasksResponse>()
+                .AddSimpleErrorValidation((m, c) => Assert.Contains("ArgumentNullException", m))
+                .Complete();
 
-            await service.HandleListTasksRequest(null, contextMock.Object);
-            VerifyErrorSent(contextMock);
-            Assert.True(((string)errorResponse).Contains("ArgumentNullException"));
+            service.HandleListTasksRequest(null, efv.Object);
+            efv.Validate();
         }
 
         [Fact]
@@ -81,7 +80,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.TaskServices
                 TaskId = sqlTask.TaskId.ToString()
             };
 
-            await RunAndVerify<bool>(
+            RunAndVerify<bool>(
                 test: (requestContext) => service.HandleCancelTaskRequest(cancelParams, requestContext),
                 verify: ((result) =>
                 {
@@ -94,18 +93,16 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.TaskServices
 
 
         [Fact]
-        public async Task TaskListTaskShouldReturnAllTasks()
+        public void TaskListTaskShouldReturnAllTasks()
         {
             serviceHostMock.AddEventHandling(TaskCreatedNotification.Type, null);
             serviceHostMock.AddEventHandling(TaskStatusChangedNotification.Type, null);
             DatabaseOperationStub operation = new DatabaseOperationStub();
             SqlTask sqlTask = service.TaskManager.CreateTask(taskMetaData, operation.FunctionToRun);
             sqlTask.Run();
-            ListTasksParams listParams = new ListTasksParams
-            {
-            };
+            ListTasksParams listParams = new ListTasksParams();
 
-            await RunAndVerify<ListTasksResponse>(
+            RunAndVerify<ListTasksResponse>(
                 test: (requestContext) => service.HandleListTasksRequest(listParams, requestContext),
                 verify: ((result) =>
                 {

@@ -12,9 +12,10 @@ using System;
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Threading.Tasks;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.Hosting.Protocol.Channel;
-using Microsoft.SqlTools.Hosting.Protocol.Contracts;
+using Microsoft.SqlTools.Dmp.Contracts;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Channels;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.Utility;
 
 namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
@@ -24,7 +25,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
     /// </summary>
     public class TestDriverBase
     {
-        protected ProtocolEndpoint protocolClient;
+        protected ServiceHost serviceHost;
 
         protected StdioClientChannel clientChannel;
 
@@ -49,22 +50,14 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
             }
         }
 
-        public Task<TResult> SendRequest<TParams, TResult>(
-            RequestType<TParams, TResult> requestType, 
-            TParams requestParams)
+        public Task<TResult> SendRequest<TParams, TResult>(RequestType<TParams, TResult> requestType, TParams requestParams)
         {
-            return 
-                this.protocolClient.SendRequest(
-                    requestType, 
-                    requestParams);
+            return this.serviceHost.SendRequest(requestType, requestParams);
         }
 
-        public Task SendEvent<TParams>(EventType<TParams> eventType, TParams eventParams)
+        public void SendEvent<TParams>(EventType<TParams> eventType, TParams eventParams)
         {
-            return 
-                this.protocolClient.SendEvent(
-                    eventType,
-                    eventParams);
+            this.serviceHost.SendEvent(eventType, eventParams);
         }
 
         public void QueueEventsForType<TParams>(EventType<TParams> eventType)
@@ -75,12 +68,10 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
                     new AsyncQueue<object>(),
                     (key, queue) => queue);
 
-            this.protocolClient.SetEventHandler(
-                eventType,
-                (p, ctx) =>
-                {
-                    return eventQueue.EnqueueAsync(p);   
-                });
+            this.serviceHost.SetEventHandler(eventType, (p, ctx) =>
+            {
+                eventQueue.EnqueueAsync(p).RunSynchronously();
+            }, true);
         }
 
         public async Task<TParams> WaitForEvent<TParams>(
@@ -110,7 +101,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
             {
                 TaskCompletionSource<TParams> eventTaskSource = new TaskCompletionSource<TParams>();
 
-                this.protocolClient.SetEventHandler(
+                this.serviceHost.SetEventHandler(
                     eventType,
                     (p, ctx) =>
                     {
@@ -118,8 +109,6 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
                         {
                             eventTaskSource.SetResult(p);
                         }
-
-                        return Task.FromResult(true);
                     },
                     true);  // Override any existing handler
 
@@ -152,29 +141,20 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Driver
             AsyncQueue<object> requestQueue = null;
             if (this.requestQueuePerType.TryGetValue(requestType.MethodName, out requestQueue))
             {
-                requestTask =
-                    requestQueue
-                        .DequeueAsync()
-                        .ContinueWith(
-                            task => (Tuple<TParams, RequestContext<TResponse>>)task.Result);
+                requestTask = requestQueue.DequeueAsync()
+                    .ContinueWith(task => (Tuple<TParams, RequestContext<TResponse>>) task.Result);
             }
             else
             {
-                var requestTaskSource =
-                    new TaskCompletionSource<Tuple<TParams, RequestContext<TResponse>>>();
+                var requestTaskSource = new TaskCompletionSource<Tuple<TParams, RequestContext<TResponse>>>();
 
-                this.protocolClient.SetRequestHandler(
-                    requestType,
-                    (p, ctx) =>
+                this.serviceHost.SetRequestHandler(requestType, (p, ctx) =>
+                {
+                    if (!requestTaskSource.Task.IsCompleted)
                     {
-                        if (!requestTaskSource.Task.IsCompleted)
-                        {
-                            requestTaskSource.SetResult(
-                                new Tuple<TParams, RequestContext<TResponse>>(p, ctx));
-                        }
-
-                        return Task.FromResult(true);
-                    });
+                        requestTaskSource.SetResult(new Tuple<TParams, RequestContext<TResponse>>(p, ctx));
+                    }
+                }, true);
 
                 requestTask = requestTaskSource.Task;
             }

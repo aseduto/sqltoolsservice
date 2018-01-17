@@ -187,7 +187,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Scripting
             }
         }
 
-        private async void SendScriptingCompleteEvent<TParams>(RequestContext<ScriptingResult> requestContext, EventType<TParams> eventType, TParams parameters, 
+        private void SendScriptingCompleteEvent<TParams>(RequestContext<ScriptingResult> requestContext, EventType<TParams> eventType, TParams parameters, 
                                                                SmoScriptingOperation operation, string scriptDestination)
         {
             requestContext.SendEvent(eventType, parameters);

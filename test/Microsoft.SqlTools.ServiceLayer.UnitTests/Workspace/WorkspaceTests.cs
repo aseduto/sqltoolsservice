@@ -40,7 +40,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Workspace
 
             // If:
             // ... An event to close the open file occurs
-            var eventContext = new Mock<EventContext>().Object;
+            var eventContext = new Mock<EventContext>(null).Object;
             var requestParams = new DidCloseTextDocumentParams
             {
                 TextDocument = new TextDocumentItem {Uri = TestObjects.ScriptUri}
@@ -76,7 +76,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Workspace
 
             // If:
             // ... An event to close the a file occurs
-            var eventContext = new Mock<EventContext>().Object;
+            var eventContext = new Mock<EventContext>(null).Object;
             var requestParams = new DidCloseTextDocumentParams
             {
                 TextDocument = new TextDocumentItem {Uri = TestObjects.ScriptUri}

@@ -3,10 +3,12 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
+using System.Runtime.InteropServices;
 using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 using Moq;
 using Xunit;
@@ -53,10 +55,9 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
             InitializeTestObjects();
 
             // setup the mock for SendResult
-            var signatureRequestContext = new Mock<RequestContext<SignatureHelp>>();
-            SignatureHelp result = null;
-            signatureRequestContext.Setup(rc => rc.SendResult(It.IsAny<SignatureHelp>()));
-            signatureRequestContext.Setup(rc => rc.SendError(It.IsAny<string>(), It.IsAny<int>()));
+            var signatureRequestContext = new EventFlowValidator<SignatureHelp>()
+                .AddNullResultValidation()
+                .Complete();
 
             langService.CurrentWorkspaceSettings.SqlTools.IntelliSense.EnableIntellisense = true;
             langService.HandleDidChangeLanguageFlavorNotification(new LanguageFlavorChangeParams {
@@ -65,10 +66,9 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
                 Flavor = "NotMSSQL"
             }, null);
             langService.HandleSignatureHelpRequest(textDocument, signatureRequestContext.Object);
-            // verify that the response was sent with a null response value
-            signatureRequestContext.Verify(m => m.SendResult(It.IsAny<SignatureHelp>()), Times.Once());
-            Assert.Null(result);
-            signatureRequestContext.Verify(m => m.SendError(It.IsAny<string>(), It.IsAny<int>()), Times.Never());
+
+            // Validate result
+            signatureRequestContext.Validate();
         }               
 
         [Fact]
@@ -151,12 +151,15 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
         public void GetCompletionsHandlerTest()
         {
             InitializeTestObjects();
-
+            var efv = new EventFlowValidator<CompletionItem[]>()
+                .AddResultValidation(Assert.NotNull)
+                .Complete();
+            
             // request the completion list            
-            langService.HandleCompletionRequest(textDocument, requestContext.Object);
+            langService.HandleCompletionRequest(textDocument, efv.Object);
 
             // verify that send result was called with a completion array
-            requestContext.Verify(m => m.SendResult(It.IsAny<CompletionItem[]>()), Times.Once());
+            efv.Validate();
         }
     }
 }

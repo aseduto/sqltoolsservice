@@ -3,7 +3,11 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using Microsoft.SqlTools.Hosting.Protocol;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility;
 using Microsoft.SqlTools.ServiceLayer.Scripting;
@@ -11,10 +15,6 @@ using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Test.Common;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 using Moq;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using Xunit;
 using static Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility.LiveConnectionHelper;
 
@@ -54,7 +54,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
         {
             var result = GetLiveAutoCompleteTestObjects();
             var requestContext = new Mock<RequestContext<ScriptingResult>>();
-            requestContext.Setup(x => x.SendResult(It.IsAny<ScriptingResult>())).Returns(Task.FromResult(new object()));
+            requestContext.Setup(x => x.SendResult(It.IsAny<ScriptingResult>()));
 
             var scriptingParams = new ScriptingParams
             {
@@ -68,7 +68,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
                 scriptingParams.ScriptingObjects = scriptingObjects;
             }
             ScriptingService service = new ScriptingService();
-            await service.HandleScriptExecuteRequest(scriptingParams, requestContext.Object);
+            service.HandleScriptExecuteRequest(scriptingParams, requestContext.Object);
 
             return requestContext;
         }
@@ -290,7 +290,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
             try
             {
                 var requestContext = new Mock<RequestContext<ScriptingResult>>();
-                requestContext.Setup(x => x.SendResult(It.IsAny<ScriptingResult>())).Returns(Task.FromResult(new object()));
+                requestContext.Setup(x => x.SendResult(It.IsAny<ScriptingResult>()));
                 ConnectionService connectionService = LiveConnectionHelper.GetLiveTestConnectionService();
                 using (SelfCleaningTempFile queryTempFile = new SelfCleaningTempFile())
                 {
@@ -322,7 +322,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
 
 
                     ScriptingService service = new ScriptingService();
-                    await service.HandleScriptExecuteRequest(scriptingParams, requestContext.Object);
+                    service.HandleScriptExecuteRequest(scriptingParams, requestContext.Object);
                     Thread.Sleep(2000);
                     await service.ScriptingTask;
 
@@ -332,10 +332,6 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
                         OwnerUri = queryTempFile.FilePath
                     });
                 }
-            }
-            catch
-            {
-                throw;
             }
             finally
             {

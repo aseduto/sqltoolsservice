@@ -9,7 +9,7 @@ using System.Data.SqlClient;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Admin;
 using Microsoft.SqlTools.ServiceLayer.Admin.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Connection;
@@ -42,15 +42,14 @@ CREATE CERTIFICATE {1} WITH SUBJECT = 'Backup Encryption Certificate'; ";
         /// </summary>
         /// Test is failing in code coverage runs. Reenable when stable.
         ///[Fact]
-        public async void GetBackupConfigInfoTest()
+        public void GetBackupConfigInfoTest()
         {
             string databaseName = "testbackup_" + new Random().Next(10000000, 99999999); 
             SqlTestDb testDb = SqlTestDb.CreateNew(TestServerType.OnPrem, false, databaseName);
             var liveConnection = LiveConnectionHelper.InitLiveConnectionInfo(databaseName);
 
             var requestContext = new Mock<RequestContext<BackupConfigInfoResponse>>();
-            requestContext.Setup(x => x.SendResult(It.IsAny<BackupConfigInfoResponse>()))
-                .Returns(Task.FromResult(new object()));
+            requestContext.Setup(x => x.SendResult(It.IsAny<BackupConfigInfoResponse>()));
             
             var dbParams = new DefaultDatabaseInfoParams
             {
@@ -58,7 +57,7 @@ CREATE CERTIFICATE {1} WITH SUBJECT = 'Backup Encryption Certificate'; ";
             };
 
             DisasterRecoveryService service = new DisasterRecoveryService();
-            await service.HandleBackupConfigInfoRequest(dbParams, requestContext.Object);
+            service.HandleBackupConfigInfoRequest(dbParams, requestContext.Object);
 
             requestContext.Verify(x => x.SendResult(It.Is<BackupConfigInfoResponse>
                 (p => p.BackupConfigInfo.RecoveryModel != string.Empty
@@ -232,7 +231,7 @@ CREATE CERTIFICATE {1} WITH SUBJECT = 'Backup Encryption Certificate'; ";
         }
 
         [Fact]
-        public async void BackupFileBrowserTest()
+        public async Task BackupFileBrowserTest()
         {
             string databaseName = "testfilebrowser_" + new Random().Next(10000000, 99999999);
             SqlTestDb testDb = SqlTestDb.CreateNew(TestServerType.OnPrem, false, databaseName);
@@ -271,7 +270,7 @@ CREATE CERTIFICATE {1} WITH SUBJECT = 'Backup Encryption Certificate'; ";
                 })
                 .Complete();
 
-            await service.RunFileBrowserOpenTask(openParams, openBrowserEventFlowValidator.Object);
+            service.RunFileBrowserOpenTask(openParams, openBrowserEventFlowValidator.Object);
 
             // Verify complete notification event was fired and the result
             openBrowserEventFlowValidator.Validate();
@@ -293,7 +292,7 @@ CREATE CERTIFICATE {1} WITH SUBJECT = 'Backup Encryption Certificate'; ";
                 .Complete();
             
             // Expand the node in file browser
-            await service.RunFileBrowserExpandTask(expandParams, expandEventFlowValidator.Object);
+            service.RunFileBrowserExpandTask(expandParams, expandEventFlowValidator.Object);
 
             // Verify result
             expandEventFlowValidator.Validate();
@@ -310,7 +309,7 @@ CREATE CERTIFICATE {1} WITH SUBJECT = 'Backup Encryption Certificate'; ";
                 .Complete();
             
             // Validate selected files in the browser
-            await service.RunFileBrowserValidateTask(validateParams, validateEventFlowValidator.Object);
+            service.RunFileBrowserValidateTask(validateParams, validateEventFlowValidator.Object);
 
             // Verify complete notification event was fired and the result
             validateEventFlowValidator.Validate();

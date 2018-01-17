@@ -283,7 +283,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
                     };
 
                     // handle sending error back when query fails
-                    Query.QueryErrorEventHandler queryFail = async (q, e) =>
+                    Query.QueryErrorEventHandler queryFail = (q, e) =>
                     {
                         requestContext.SendError(e);
                     };
@@ -713,7 +713,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
             {
                 requestContext.SendResult(new SaveResultRequestResult());
             };
-            ResultSet.SaveAsFailureEventHandler errorHandler = async (parameters, reason) =>
+            ResultSet.SaveAsFailureEventHandler errorHandler = (parameters, reason) =>
             {
                 string message = SR.QueryServiceSaveAsFail(Path.GetFileName(parameters.FilePath), reason);
                 requestContext.SendError(message);

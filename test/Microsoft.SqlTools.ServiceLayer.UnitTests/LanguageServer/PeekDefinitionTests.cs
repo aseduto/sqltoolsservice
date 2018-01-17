@@ -19,6 +19,7 @@ using Microsoft.SqlTools.ServiceLayer.LanguageServices;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Scripting;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
+using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
 using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
 using Microsoft.SqlTools.ServiceLayer.Utility;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
@@ -43,11 +44,16 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
         {
             InitializeTestObjects();
             scriptParseInfo.IsConnected = false;
+
+            var efv = new EventFlowValidator<Location[]>()
+                .AddSimpleErrorValidation((m, c) => { Assert.NotEmpty(m); })
+                .Complete();
+            
             // request definition
-            langService.HandleDefinitionRequest(textDocument, requestContext.Object);
+            langService.HandleDefinitionRequest(textDocument, efv.Object);
+            
             // verify that send result was not called and send error was called
-            requestContext.Verify(m => m.SendResult(It.IsAny<Location[]>()), Times.Never());
-            requestContext.Verify(m => m.SendError(It.IsAny<string>(), It.IsAny<int>()), Times.Once());
+            efv.Validate();
         }
 
         /// <summary>

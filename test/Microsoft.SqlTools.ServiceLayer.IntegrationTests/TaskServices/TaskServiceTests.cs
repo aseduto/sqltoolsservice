@@ -9,8 +9,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlTools.Extensibility;
-using Microsoft.SqlTools.Hosting.Protocol;
+using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.ReliableConnection;
 using Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility;
@@ -28,11 +28,11 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.TaskServices
     public class TaskServiceTests : ServiceTestBase
     {
         private TaskService service;
-        private Mock<IProtocolEndpoint> serviceHostMock;
+        private Mock<IServiceHost> serviceHostMock;
 
         public TaskServiceTests()
         {
-            serviceHostMock = new Mock<IProtocolEndpoint>();
+            serviceHostMock = new Mock<IServiceHost>();
             service = CreateService();
             service.InitializeService(serviceHostMock.Object);
         }
@@ -132,8 +132,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.TaskServices
         {
             TaskService service = new TaskService();
             service.TaskManager = new SqlTaskManager();
-            return CreateProvider()
-                .RegisterSingleService(service);
+            return CreateProvider().RegisterSingleService(service);
         }
 
         private Server CreateServerObject(ConnectionInfo connInfo   )

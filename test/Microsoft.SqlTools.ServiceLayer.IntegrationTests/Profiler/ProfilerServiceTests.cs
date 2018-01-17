@@ -4,15 +4,9 @@
 //
 
 using System;
-using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlServer.Management.XEvent;
-using Microsoft.SqlTools.Hosting.Protocol;
-using Microsoft.SqlTools.ServiceLayer.Connection;
+using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility;
 using Microsoft.SqlTools.ServiceLayer.Profiler;
 using Microsoft.SqlTools.ServiceLayer.Profiler.Contracts;
@@ -44,14 +38,13 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Profiler
                 string sessionId = null;
                 var startContext = new Mock<RequestContext<StartProfilingResult>>();
                 startContext.Setup(rc => rc.SendResult(It.IsAny<StartProfilingResult>()))
-                    .Returns<StartProfilingResult>((result) => 
+                    .Callback<StartProfilingResult>((result) => 
                     {
                         // capture the session id for sending the stop message
                         sessionId = result.SessionId;
-                        return Task.FromResult(0);
                     });
 
-                await profilerService.HandleStartProfilingRequest(startParams, startContext.Object);
+                profilerService.HandleStartProfilingRequest(startParams, startContext.Object);
 
                 startContext.VerifyAll();
 
@@ -65,10 +58,9 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Profiler
                 };
 
                 var stopContext = new Mock<RequestContext<StopProfilingResult>>();
-                stopContext.Setup(rc => rc.SendResult(It.IsAny<StopProfilingResult>()))
-                    .Returns(Task.FromResult(0));
+                stopContext.Setup(rc => rc.SendResult(It.IsAny<StopProfilingResult>()));
 
-                await profilerService.HandleStopProfilingRequest(stopParams, stopContext.Object);
+                profilerService.HandleStopProfilingRequest(stopParams, stopContext.Object);
 
                 stopContext.VerifyAll();
             }           

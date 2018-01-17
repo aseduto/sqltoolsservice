@@ -15,7 +15,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
 
         public static Mock<RequestContext<TResponse>> Create<TResponse>(Action<TResponse> resultCallback)
         {
-            var requestContext = new Mock<RequestContext<TResponse>>();
+            var requestContext = new Mock<RequestContext<TResponse>>(null, null);
 
             // Setup the mock for SendResult
             var sendResultFlow = requestContext

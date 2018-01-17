@@ -22,7 +22,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
 
         public EventFlowValidator()
         {
-            requestContext = new Mock<RequestContext<TRequestContext>>(MockBehavior.Strict);
+            requestContext = new Mock<RequestContext<TRequestContext>>(MockBehavior.Strict, null, null);
         }
 
         public RequestContext<TRequestContext> Object => requestContext.Object;
@@ -49,6 +49,18 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
             return this;
         }
 
+        public EventFlowValidator<TRequestContext> AddNullResultValidation()
+        {
+            expectedEvents.Add(new ExpectedEvent
+            {
+                EventType = EventTypes.Result,
+                ParamType = null,
+                Validator = null
+            });
+
+            return this;
+        }
+        
         public EventFlowValidator<TRequestContext> AddResultValidation(Action<TRequestContext> paramValidation)
         {
             // Add the expected event
@@ -141,13 +153,23 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
 
                 // Step 1) Make sure the event type matches
                 Assert.Equal(expected.EventType, received.EventType);
+
+                if (expected.ParamType == null)
+                {
+                    // User expected null object
+                    // Step 2) Assert the param is null
+                    Assert.Null(received.EventObject);
+                }
+                else
+                {
+                    // User expected a not null object
+                    // Step 2) Make sure the param type matches
+                    Assert.Equal(expected.ParamType, received.EventObject.GetType());
                 
-                // Step 2) Make sure the param type matches
-                Assert.Equal(expected.ParamType, received.EventObject.GetType());
-                
-                // Step 3) Run the validator on the param object
-                Assert.NotNull(received.EventObject);
-                expected.Validator?.DynamicInvoke(received.EventObject);
+                    // Step 3) Run the validator on the param object
+                    Assert.NotNull(received.EventObject);
+                    expected.Validator?.DynamicInvoke(received.EventObject);
+                }
             }
         }
 

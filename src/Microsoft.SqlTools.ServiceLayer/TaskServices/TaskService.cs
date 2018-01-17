@@ -5,7 +5,6 @@
 
 using System;
 using System.Linq;
-using System.Threading.Tasks;
 using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.Dmp.Hosting.Protocol;
@@ -51,62 +50,58 @@ namespace Microsoft.SqlTools.ServiceLayer.TaskServices
         {
             this.serviceHost = serviceHost;
             Logger.Write(LogLevel.Verbose, "TaskService initialized");
-            serviceHost.SetAsyncRequestHandler(ListTasksRequest.Type, HandleListTasksRequest);
-            serviceHost.SetAsyncRequestHandler(CancelTaskRequest.Type, HandleCancelTaskRequest);
+            serviceHost.SetRequestHandler(ListTasksRequest.Type, HandleListTasksRequest);
+            serviceHost.SetRequestHandler(CancelTaskRequest.Type, HandleCancelTaskRequest);
             TaskManager.TaskAdded += OnTaskAdded;
         }
 
         /// <summary>
         /// Handles a list tasks request
         /// </summary>
-        internal async Task HandleListTasksRequest(
+        internal void HandleListTasksRequest(
             ListTasksParams listTasksParams,
             RequestContext<ListTasksResponse> context)
         {
-            Logger.Write(LogLevel.Verbose, "HandleListTasksRequest");
-
-            Func<Task<ListTasksResponse>> getAllTasks = () =>
+            try
             {
+                Logger.Write(LogLevel.Verbose, "HandleListTasksRequest");
+
                 Validate.IsNotNull(nameof(listTasksParams), listTasksParams);
-                return Task.Factory.StartNew(() =>
+                ListTasksResponse response = new ListTasksResponse
                 {
-                    ListTasksResponse response = new ListTasksResponse
-                    {
-                        Tasks = TaskManager.Tasks.Select(x => x.ToTaskInfo()).ToArray()
-                    };
-
-                    return response;
-                });
-
-            };
-
-            await HandleRequestAsync(getAllTasks, context, "HandleListTasksRequest");
+                    Tasks = TaskManager.Tasks.Select(x => x.ToTaskInfo()).ToArray()
+                };
+                context.SendResult(response);
+            }
+            catch (Exception e)
+            {
+                context.SendError(e);
+            }
         }
 
-        internal async Task HandleCancelTaskRequest(CancelTaskParams cancelTaskParams, RequestContext<bool> context)
+        internal void HandleCancelTaskRequest(CancelTaskParams cancelTaskParams, RequestContext<bool> context)
         {
             Logger.Write(LogLevel.Verbose, "HandleCancelTaskRequest");
-            Func<Task<bool>> cancelTask = () =>
+
+            try
             {
                 Validate.IsNotNull(nameof(cancelTaskParams), cancelTaskParams);
 
-                return Task.Factory.StartNew(() =>
+                Guid taskId;
+                if (Guid.TryParse(cancelTaskParams.TaskId, out taskId))
                 {
-                    Guid taskId;
-                    if (Guid.TryParse(cancelTaskParams.TaskId, out taskId))
-                    {
-                        TaskManager.CancelTask(taskId);
-                        return true;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                });
-
-            };
-
-            await HandleRequestAsync(cancelTask, context, "HandleCancelTaskRequest");
+                    TaskManager.CancelTask(taskId);
+                    context.SendResult(true);
+                }
+                else
+                {
+                    context.SendResult(false);
+                }
+            }
+            catch (Exception e)
+            {
+                context.SendError(e);
+            }
         }
 
         private void OnTaskAdded(object sender, TaskEventArgs<SqlTask> e)

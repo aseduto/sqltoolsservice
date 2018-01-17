@@ -38,8 +38,6 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
 
         protected Mock<WorkspaceService<SqlToolsSettings>> workspaceService;
 
-        protected Mock<RequestContext<T[]>> requestContext;
-
         protected Mock<ScriptFile> scriptFile;
 
         protected Mock<IBinder> binder;
@@ -86,14 +84,6 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
             ConnectionInfo connectionInfo = TestObjects.GetTestConnectionInfo();
             langService.ConnectionServiceInstance.OwnerToConnectionMap.Add(this.testScriptUri, connectionInfo);
             langService.BindingQueue = bindingQueue.Object;
-
-            // setup the mock for SendResult
-            // TODO: Replace with event flow validation
-            requestContext = new Mock<RequestContext<T[]>>();
-            requestContext.Setup(rc => rc.SendResult(It.IsAny<T[]>()));
-            requestContext.Setup(rc => rc.SendError(It.IsAny<string>(), It.IsAny<int>()));
-            requestContext.Setup(r => r.SendEvent(It.IsAny<EventType<TelemetryParams>>(), It.IsAny<TelemetryParams>()));
-            requestContext.Setup(r => r.SendEvent(It.IsAny<EventType<StatusChangeParams>>(), It.IsAny<StatusChangeParams>()));
 
             // setup the IBinder mock
             binder = new Mock<IBinder>();

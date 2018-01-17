@@ -84,7 +84,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.QueryExecution
                 }
                     
             };
-            qes.UpdateSettings(settings, null, new Mock<EventContext>().Object);
+            qes.UpdateSettings(settings, null, new Mock<EventContext>(null).Object);
 
             // Then: The settings object should match what it was updated to
             Assert.False(qes.Settings.QueryExecutionSettings.DisplayBitAsNumber);
