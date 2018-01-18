@@ -174,7 +174,6 @@ namespace Microsoft.SqlTools.ServiceLayer.Formatter
         }
 
         internal static FormatOptions MergeFormatOptions(FormattingOptions formatRequestOptions, FormatterSettings settings)
-
         {
             FormatOptions options = new FormatOptions();
             if (formatRequestOptions != null)

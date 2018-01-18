@@ -3,9 +3,7 @@
 // Licensed under the MIT license. See LICENSE file in the project root for full license information.
 //
 
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
@@ -30,7 +28,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
             ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(directory, new[] {"microsoftsqltoolsservicelayer.dll"});
             ServiceProvider.RegisterSingleService(WorkspaceServiceMock.Object);
             ServiceProvider.RegisterSingleService(LanguageServiceMock.Object);
-            
+            ServiceProvider.RegisterHostedServices();
             FormatterService = ServiceProvider.GetService<TSqlFormatterService>();
         }
 
