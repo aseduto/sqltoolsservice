@@ -22,7 +22,9 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
     public class AutocompleteTests : LanguageServiceTestBase<CompletionItem>
     {
 
-        [Fact]
+        // TODO: Rewrite these tests when it is clear what their behavior is supposed to be (01/18/2018)
+        #region Disabled Tests
+        //[Fact]
         public void HandleCompletionRequestDisabled()
         {
             // TODO: What are these testing?
@@ -31,7 +33,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
             langService.HandleCompletionRequest(null, null);
         }
 
-        [Fact]
+        //[Fact]
         public void HandleCompletionResolveRequestDisabled()
         {
             // TODO: What are these testing?
@@ -40,7 +42,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
             langService.HandleCompletionResolveRequest(null, null);
         }
 
-        [Fact]
+        //[Fact]
         public void HandleSignatureHelpRequestDisabled()
         {
             // TODO: What are these testing?
@@ -48,6 +50,7 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.LanguageServer
             langService.CurrentWorkspaceSettings.SqlTools.IntelliSense.EnableIntellisense = false;
             langService.HandleSignatureHelpRequest(null, null);
         }
+        #endregion
 
         [Fact]
         public void HandleSignatureHelpRequestNonMssqlFile()

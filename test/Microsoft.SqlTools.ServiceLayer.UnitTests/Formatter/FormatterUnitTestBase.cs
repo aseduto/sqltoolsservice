@@ -5,13 +5,13 @@
 
 using System.IO;
 using System.Reflection;
-using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.ServiceLayer.Formatter;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
 using Microsoft.SqlTools.ServiceLayer.SqlContext;
 using Microsoft.SqlTools.ServiceLayer.Test.Common;
 using Microsoft.SqlTools.ServiceLayer.Workspace;
+using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
 using Moq;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
@@ -20,12 +20,11 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
     {
         public FormatterUnitTestsBase()
         {
-            HostMock = new Mock<IServiceHost>();
             WorkspaceServiceMock = new Mock<WorkspaceService<SqlToolsSettings>>();
             LanguageServiceMock = new Mock<LanguageService>();
 
-            string directory = Path.GetDirectoryName(GetType().Assembly.Location);
-            ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(directory, new[] {"microsoftsqltoolsservicelayer.dll"});
+            ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(
+                TestUtils.DefaultAssemblyFolder, TestUtils.DefaultAssemblyList);
             ServiceProvider.RegisterSingleService(WorkspaceServiceMock.Object);
             ServiceProvider.RegisterSingleService(LanguageServiceMock.Object);
             ServiceProvider.RegisterHostedServices();
@@ -33,7 +32,6 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
         }
 
         protected ExtensionServiceProvider ServiceProvider { get; private set; }
-        protected Mock<IServiceHost> HostMock { get; private set; }
         protected Mock<WorkspaceService<SqlToolsSettings>> WorkspaceServiceMock { get; private set; }
         protected Mock<LanguageService> LanguageServiceMock { get; private set; }
 

@@ -6,9 +6,10 @@
 using System;
 using System.Linq;
 using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlTools.Extensibility;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.ServiceLayer.ObjectExplorer;
 using Microsoft.SqlTools.ServiceLayer.ObjectExplorer.SmoModel;
+using Microsoft.SqlTools.ServiceLayer.UnitTests.Utility;
 using Xunit;
 
 namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
@@ -20,7 +21,8 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
         public void ShouldFindDatabaseQuerierFromRealPath()
         {
             // Given the extension type loader is set to find SmoCollectionQuerier objects
-            IMultiServiceProvider serviceProvider = ExtensionServiceProvider.CreateDefaultServiceProvider();
+            IMultiServiceProvider serviceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(
+                TestUtils.DefaultAssemblyFolder, TestUtils.DefaultAssemblyList);
             // When I request a database compatible querier
             SmoQuerier querier = serviceProvider.GetService<SmoQuerier>(q => q.SupportedObjectTypes.Contains(typeof(Database)));
             // Then I expect to get back the SqlDatabaseQuerier
@@ -74,7 +76,8 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
         private SmoQuerier GetSmoQuerier(Type querierType)
         {
             // Given the extension type loader is set to find SmoCollectionQuerier objects
-            IMultiServiceProvider serviceProvider = ExtensionServiceProvider.CreateDefaultServiceProvider();
+            IMultiServiceProvider serviceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(
+                TestUtils.DefaultAssemblyFolder, TestUtils.DefaultAssemblyList);
             // When I request a compatible querier
             SmoQuerier querier = serviceProvider.GetService<SmoQuerier>(q => q.SupportedObjectTypes.Contains(querierType));
             // Then I expect to get back the Querier

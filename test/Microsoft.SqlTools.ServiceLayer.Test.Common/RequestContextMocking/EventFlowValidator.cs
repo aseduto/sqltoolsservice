@@ -107,21 +107,27 @@ namespace Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking
         {
             // Add general handler for result handling
             requestContext.Setup(rc => rc.SendResult(It.IsAny<TRequestContext>()))
-                .Callback<TRequestContext>(r => receivedEvents.Add(new ReceivedEvent
+                .Callback<TRequestContext>(r =>
+                    receivedEvents.Add(new ReceivedEvent
+                    {
+                        EventObject = r,
+                        EventType = EventTypes.Result
+                    })
+                );
+            
+            // Add general handler for errors
+            requestContext.Setup(rc => rc.SendError(It.IsAny<string>(), It.IsAny<int>()))
+                .Callback<string, int>((msg, code)=>
                 {
-                    EventObject = r,
-                    EventType = EventTypes.Result
-                }));
-
-            // Add general handler for error event
-            requestContext.AddErrorHandling((msg, code) =>
-            {
-                receivedEvents.Add(new ReceivedEvent
-                {
-                    EventObject = new Error {Message = msg, Code = code},
-                    EventType = EventTypes.Error
+                    receivedEvents.Add(new ReceivedEvent
+                    {
+                        EventObject = new Error {Message = msg, Code = code},
+                        EventType = EventTypes.Error
+                    });
                 });
-            });
+            
+            // Add general handler for exception style errors
+            requestContext.Setup(rc => rc.SendError(It.IsAny<Exception>()));
 
             completed = true;
             return this;

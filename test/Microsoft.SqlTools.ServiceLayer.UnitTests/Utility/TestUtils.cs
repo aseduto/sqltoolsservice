@@ -4,6 +4,7 @@
 //
 
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.SqlTools.Dmp.Hosting.Protocol;
@@ -16,6 +17,12 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Utility
     public static class TestUtils
     {
 
+        public const string ServiceLayerAssembly = "microsoftsqltoolsservicelayer.dll";
+
+        public static readonly string[] DefaultAssemblyList = {ServiceLayerAssembly};
+        
+        public static readonly string DefaultAssemblyFolder = Path.GetDirectoryName(typeof(TestUtils).Assembly.Location);
+        
         /// <summary>
         /// Wait for a condition to be true for a limited amount of time.
         /// </summary>
@@ -33,7 +40,6 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Utility
 
             return (count < intervalCount);
         }
-
 
         public static async Task RunAndVerify<T>(Func<RequestContext<T>, Task> test, Action<T> verify)
         {
