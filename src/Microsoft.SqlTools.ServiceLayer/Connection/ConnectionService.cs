@@ -15,8 +15,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.Dmp.Hosting.Utility;
+using Microsoft.SqlTools.ServiceLayer.Capabilities;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Connection.ReliableConnection;
 using Microsoft.SqlTools.ServiceLayer.LanguageServices;
@@ -941,7 +943,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
             return response;
         }
 
-        public void InitializeService(IServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost, IMultiServiceProvider serviceProvider)
         {
             this.ServiceHost = serviceHost;
 
@@ -951,6 +953,12 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
             serviceHost.SetRequestHandler(DisconnectRequest.Type, HandleDisconnectRequest);
             serviceHost.SetRequestHandler(ListDatabasesRequest.Type, HandleListDatabasesRequest);
             serviceHost.SetRequestHandler(ChangeDatabaseRequest.Type, HandleChangeDatabase);
+
+            CapabilitiesService capabilitiesService = serviceProvider.GetService<CapabilitiesService>();
+            if (capabilitiesService != null)
+            {
+                capabilitiesService.ConnectionProvider = ConnectionProviderOptionsHelper.BuildConnectionProviderOptions();
+            }
         }
 
         /// <summary> 

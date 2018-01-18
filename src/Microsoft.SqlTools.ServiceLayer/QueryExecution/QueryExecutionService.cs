@@ -8,8 +8,11 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Threading.Tasks;
 using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.Dmp.Hosting.Utility;
+using Microsoft.SqlTools.ServiceLayer.Capabilities;
+using Microsoft.SqlTools.ServiceLayer.Capabilities.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.QueryExecution.Contracts;
@@ -138,7 +141,7 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
         /// event handler.
         /// </summary>
         /// <param name="serviceHost">The service host instance to register with</param>
-        public void InitializeService(IServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost, IMultiServiceProvider serviceProvider)
         {
             // Register handlers for requests
             serviceHost.SetRequestHandler(ExecuteDocumentSelectionRequest.Type, HandleExecuteRequest);
@@ -162,6 +165,15 @@ namespace Microsoft.SqlTools.ServiceLayer.QueryExecution
 
             // Register a handler for when the configuration changes
             WorkspaceService.RegisterConfigChangeCallback(UpdateSettings);
+            
+            // Tell the capabilities service that this will handle serialization
+            CapabilitiesService capabilitiesService = serviceProvider.GetService<CapabilitiesService>();
+            capabilitiesService?.FeaturesMetadata.Add(new FeatureMetadataProvider
+            {
+                FeatureName = "serializationService",
+                Enabled = true,
+                OptionsMetadata = new ServiceOption[0]
+            });
         }
 
         #region Request Handlers

@@ -9,8 +9,10 @@ using System.Threading.Tasks;
 using System.Xml;
 using Microsoft.SqlServer.Management.Smo;
 using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.ServiceLayer.Admin.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Capabilities;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 
 namespace Microsoft.SqlTools.ServiceLayer.Admin
@@ -26,7 +28,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin
 
         private static readonly ConcurrentDictionary<string, DatabaseTaskHelper> serverTaskHelperMap =
             new ConcurrentDictionary<string, DatabaseTaskHelper>();
-
+        
         /// <summary>
         /// Default, parameterless constructor.
         /// </summary>
@@ -65,12 +67,18 @@ namespace Microsoft.SqlTools.ServiceLayer.Admin
         /// <summary>
         /// Initializes the service instance
         /// </summary>
-        public void InitializeService(IServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost, IMultiServiceProvider serviceProvider)
         {
             serviceHost.SetRequestHandler(CreateDatabaseRequest.Type, HandleCreateDatabaseRequest);
             serviceHost.SetRequestHandler(CreateLoginRequest.Type, HandleCreateLoginRequest);
             serviceHost.SetRequestHandler(DefaultDatabaseInfoRequest.Type, HandleDefaultDatabaseInfoRequest);
             serviceHost.SetRequestHandler(GetDatabaseInfoRequest.Type, HandleGetDatabaseInfoRequest);
+
+            CapabilitiesService capabilitiesService = serviceProvider.GetService<CapabilitiesService>();
+            if (capabilitiesService != null)
+            {
+                capabilitiesService.AdminServicesProvider = AdminServicesProviderOptionsHelper.BuildAdminServicesProviderOptions();
+            }
         }
 
         /// <summary>

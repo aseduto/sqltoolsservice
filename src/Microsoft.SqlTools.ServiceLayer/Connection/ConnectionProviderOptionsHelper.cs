@@ -10,7 +10,7 @@ namespace Microsoft.SqlTools.ServiceLayer.Connection
     /// <summary>
     /// Helper class for providing metadata about connection options
     /// </summary>         
-    internal class ConnectionProviderOptionsHelper
+    internal static class ConnectionProviderOptionsHelper
     {
         internal static ConnectionProviderOptions BuildConnectionProviderOptions()
         {

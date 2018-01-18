@@ -4,7 +4,6 @@
 
 using System;
 using System.IO;
-using Microsoft.SqlTools.Dmp.Contracts;
 using Microsoft.SqlTools.Dmp.Contracts.Hosting;
 using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.Dmp.Hosting.Channels;
@@ -73,7 +72,6 @@ namespace Microsoft.SqlTools.ServiceLayer
                 serviceProvider.RegisterSingleService(WorkspaceService<SqlToolsSettings>.Instance);
 
                 // Create the service host
-                ProviderDetails details = new ProviderDetails {ProviderProtocolVersion = "1.0"};
                 LanguageServiceCapabilities capabilities = new LanguageServiceCapabilities
                 {
                     TextDocumentSync = TextDocumentSyncKind.Incremental,
@@ -93,19 +91,20 @@ namespace Microsoft.SqlTools.ServiceLayer
                         TriggerCharacters = new[] {" ", ","}
                     }
                 };
-                ExtensibleServiceHost serviceHost = new ExtensibleServiceHost(serviceProvider, new StdioServerChannel(), details, capabilities);
+                ExtensibleServiceHost serviceHost = new ExtensibleServiceHost(serviceProvider, new StdioServerChannel(), 
+                    SqlToolsServiceProviderDetails.ProviderDetails, capabilities);
 
                 // Initialize the old singleton services (workspace service must go first)
                 WorkspaceService<SqlToolsSettings>.Instance.InitializeService(serviceHost);
                 
-                AdminService.Instance.InitializeService(serviceHost);
-                ConnectionService.Instance.InitializeService(serviceHost);
-                DisasterRecoveryService.Instance.InitializeService(serviceHost);
+                AdminService.Instance.InitializeService(serviceHost, serviceProvider);
+                ConnectionService.Instance.InitializeService(serviceHost, serviceProvider);
+                DisasterRecoveryService.Instance.InitializeService(serviceHost, serviceProvider);
                 EditDataService.Instance.InitializeService(serviceHost);
                 FileBrowserService.Instance.InitializeService(serviceHost);
                 MetadataService.Instance.InitializeService(serviceHost);
                 ProfilerService.Instance.InitializeService(serviceHost);
-                QueryExecutionService.Instance.InitializeService(serviceHost);
+                QueryExecutionService.Instance.InitializeService(serviceHost, serviceProvider);
                 ScriptingService.Instance.InitializeService(serviceHost);
                 
                 // Start the service and wait for graceful exit

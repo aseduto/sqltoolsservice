@@ -6,10 +6,13 @@
 using System;
 using System.Data.SqlClient;
 using Microsoft.SqlTools.Dmp.Hosting;
+using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.Dmp.Hosting.Protocol;
 using Microsoft.SqlTools.Dmp.Hosting.Utility;
 using Microsoft.SqlTools.ServiceLayer.Admin;
 using Microsoft.SqlTools.ServiceLayer.Admin.Contracts;
+using Microsoft.SqlTools.ServiceLayer.Capabilities;
+using Microsoft.SqlTools.ServiceLayer.Capabilities.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Connection;
 using Microsoft.SqlTools.ServiceLayer.Connection.Contracts;
 using Microsoft.SqlTools.ServiceLayer.DisasterRecovery.Contracts;
@@ -102,7 +105,7 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
         /// <summary>
         /// Initializes the service instance
         /// </summary>
-        public void InitializeService(IServiceHost serviceHost)
+        public void InitializeService(IServiceHost serviceHost, IMultiServiceProvider serviceProvider)
         {
             // Get database info
             serviceHost.SetRequestHandler(BackupConfigInfoRequest.Type, HandleBackupConfigInfoRequest);
@@ -125,6 +128,15 @@ namespace Microsoft.SqlTools.ServiceLayer.DisasterRecovery
             // Register file path validation callbacks
             FileBrowserServiceInstance.RegisterValidatePathsCallback(FileValidationServiceConstants.Backup, DisasterRecoveryFileValidator.ValidatePaths);
             FileBrowserServiceInstance.RegisterValidatePathsCallback(FileValidationServiceConstants.Restore, DisasterRecoveryFileValidator.ValidatePaths);
+            
+            // Add feature capabilities
+            CapabilitiesService capabilitiesService = serviceProvider.GetService<CapabilitiesService>();
+            capabilitiesService?.FeaturesMetadata.Add(new FeatureMetadataProvider
+            {
+                FeatureName = "Restore",
+                Enabled = true,
+                OptionsMetadata = RestoreOptionsHelper.CreateRestoreOptions()
+            });
         }
 
         /// <summary>
