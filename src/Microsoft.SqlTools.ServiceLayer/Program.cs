@@ -57,7 +57,8 @@ namespace Microsoft.SqlTools.ServiceLayer
 
                 // Setup the service provider to have all our services
                 string[] inclusionList = {"microsoftsqltoolsservicelayer.dll"};
-                ExtensionServiceProvider serviceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(inclusionList);
+                string directory = Path.GetDirectoryName(typeof(Program).Assembly.Location);
+                ExtensionServiceProvider serviceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(directory, inclusionList);
                 
                 // Add all the old singleton services
                 serviceProvider.RegisterSingleService(AdminService.Instance);

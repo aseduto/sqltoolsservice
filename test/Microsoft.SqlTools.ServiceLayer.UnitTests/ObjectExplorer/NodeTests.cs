@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Globalization;
+using System.IO;
 using Microsoft.SqlServer.Management.Common;
 using Microsoft.SqlServer.Management.Smo;
 using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
@@ -55,7 +56,8 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.ObjectExplorer
             };
 
             // TODO can all tests use the standard service provider?
-            ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(new string[] {});
+            string directory = Path.GetDirectoryName(GetType().Assembly.Location);
+            ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(directory, new string[] {});
         }
         
         [Fact]

@@ -5,6 +5,7 @@
 
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
@@ -24,9 +25,12 @@ namespace Microsoft.SqlTools.ServiceLayer.UnitTests.Formatter
             HostMock = new Mock<IServiceHost>();
             WorkspaceServiceMock = new Mock<WorkspaceService<SqlToolsSettings>>();
             LanguageServiceMock = new Mock<LanguageService>();
-            ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(new[] {"microsoftsqltoolsservicelayer.dll"});
+
+            string directory = Path.GetDirectoryName(GetType().Assembly.Location);
+            ServiceProvider = ExtensionServiceProvider.CreateFromAssembliesInDirectory(directory, new[] {"microsoftsqltoolsservicelayer.dll"});
             ServiceProvider.RegisterSingleService(WorkspaceServiceMock.Object);
             ServiceProvider.RegisterSingleService(LanguageServiceMock.Object);
+            
             FormatterService = ServiceProvider.GetService<TSqlFormatterService>();
         }
 
