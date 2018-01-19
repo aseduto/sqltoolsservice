@@ -44,7 +44,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Tests
                     }
                 };
 
-                await testService.RequestOpenDocumentNotification(openParams);
+                testService.RequestOpenDocumentNotification(openParams);
 
                 Thread.Sleep(500);
 
@@ -85,7 +85,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Tests
                     }
                 };
 
-                await testService.RequestOpenDocumentNotification(openParams);
+                testService.RequestOpenDocumentNotification(openParams);
 
                 Thread.Sleep(500);
 
@@ -135,7 +135,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Tests
                     }
                 };
 
-                await testService.RequestOpenDocumentNotification(openParams);
+                testService.RequestOpenDocumentNotification(openParams);
 
                 Thread.Sleep(100);
 
@@ -169,7 +169,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Tests
                     }
                 };
 
-                await testService.RequestChangeTextDocumentNotification(changeParams);
+                testService.RequestChangeTextDocumentNotification(changeParams);
 
                 Thread.Sleep(100);
 
@@ -202,7 +202,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Tests
                     }
                 };
 
-                await testService.RequestChangeTextDocumentNotification(changeParams);
+                testService.RequestChangeTextDocumentNotification(changeParams);
 
                 Thread.Sleep(2500);
 
@@ -237,7 +237,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Tests
                     }
                 };
 
-                await testService.RequestOpenDocumentNotification(openParams);
+                testService.RequestOpenDocumentNotification(openParams);
 
                 Thread.Sleep(500);
 
@@ -278,7 +278,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Tests
                     Settings = settings
                 };
 
-                await testService.RequestChangeConfigurationNotification(configParams);
+                testService.RequestChangeConfigurationNotification(configParams);
 
                 Thread.Sleep(2000);
 

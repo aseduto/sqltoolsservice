@@ -23,6 +23,7 @@
     <EmbeddedResource Include="Scripts/TestDbTableQueries.sql" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Microsoft.SqlTools.ServiceLayer.TestDriver\Microsoft.SqlTools.ServiceLayer.TestDriver.csproj" />
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\..\bin\ref\Newtonsoft.Json.dll</HintPath>
     </Reference>

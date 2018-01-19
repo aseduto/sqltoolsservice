@@ -82,7 +82,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Tests
                             }
                         };
 
-                        await testService.RequestChangeTextDocumentNotification(changeParams);
+                        testService.RequestChangeTextDocumentNotification(changeParams);
 
                         Thread.Sleep(50);
 
@@ -133,7 +133,7 @@ namespace Microsoft.SqlTools.ServiceLayer.TestDriver.Tests
                         }
                     };
 
-                    await testService.RequestChangeTextDocumentNotification(changeParams2);
+                    testService.RequestChangeTextDocumentNotification(changeParams2);
                 }
 
                 await testService.Disconnect(queryTempFile.FilePath);

@@ -11,7 +11,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.SqlServer.Management.Smo;
-using Microsoft.SqlTools.Dmp.Hosting;
 using Microsoft.SqlTools.Dmp.Hosting.Extensibility;
 using Microsoft.SqlTools.ServiceLayer.Admin;
 using Microsoft.SqlTools.ServiceLayer.Connection;
@@ -22,7 +21,6 @@ using Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility;
 using Microsoft.SqlTools.ServiceLayer.TaskServices;
 using Microsoft.SqlTools.ServiceLayer.Test.Common;
 using Microsoft.SqlTools.ServiceLayer.UnitTests;
-using Moq;
 using Xunit;
 using static Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility.LiveConnectionHelper;
 
@@ -31,7 +29,6 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
     public class RestoreDatabaseServiceTests : ServiceTestBase
     {
         private ConnectionService _connectService = TestServiceProvider.Instance.ConnectionService;
-        private Mock<IServiceHost> serviceHostMock;
         private DisasterRecoveryService service;
         private string fullBackupFilePath;
         private string[] backupFilesToRecoverDatabase;
@@ -43,9 +40,7 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
 
         public RestoreDatabaseServiceTests()
         {
-            serviceHostMock = new Mock<IServiceHost>();
-            service = CreateService();
-            service.InitializeService(serviceHostMock.Object);
+            service = new DisasterRecoveryService();
         }
 
         private async Task VerifyBackupFileCreated()
@@ -727,19 +722,6 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
             }
         }
 
-        protected DisasterRecoveryService CreateService()
-        {
-            CreateServiceProviderWithMinServices();
-
-            // Create the service using the service provider, which will initialize dependencies
-            return ServiceProvider.GetService<DisasterRecoveryService>();
-        }
-
-        protected override RegisteredServiceProvider CreateServiceProviderWithMinServices()
-        {
-            return CreateProvider().RegisterSingleService(new DisasterRecoveryService());
-        }
-
         public async Task<string[]> CreateBackupSetsToRecoverDatabase()
         {
             List<string> backupFiles = new List<string>();
@@ -849,6 +831,12 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
             backupInfo.SelectedFileGroup = null;
             backupInfo.SelectedFiles = "";
             return backupInfo;
+        }
+
+        protected override RegisteredServiceProvider CreateServiceProviderWithMinServices()
+        {
+            // NOT NEEDED
+            return null;
         }
     }
 }
