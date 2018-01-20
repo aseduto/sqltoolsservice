@@ -15,6 +15,7 @@ using Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility;
 using Microsoft.SqlTools.ServiceLayer.Metadata;
 using Microsoft.SqlTools.ServiceLayer.Metadata.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Test.Common;
+using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 using Moq;
 using Xunit;
@@ -110,8 +111,9 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Metadata
 
             CreateTestTable(sqlConn);
 
-            var requestContext = new Mock<RequestContext<TableMetadataResult>>();
-            requestContext.Setup(x => x.SendResult(It.IsAny<TableMetadataResult>()));
+            var efv = new EventFlowValidator<TableMetadataResult>()
+                .AddResultValidation(Assert.NotNull)
+                .Complete();
 
             var metadataParmas = new TableMetadataParams
             {
@@ -120,19 +122,18 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Metadata
                 ObjectName = this.testTableName
             };
 
-            MetadataService.HandleGetTableRequest(metadataParmas, requestContext.Object);
-
+            MetadataService.HandleGetTableRequest(metadataParmas, efv.Object);
             DeleteTestTable(sqlConn);
-
-            requestContext.VerifyAll();
+            efv.Validate();
         }
 
         [Fact]
         public void GetViewInfoReturnsValidResults()
         {           
             var result = GetLiveAutoCompleteTestObjects();         
-            var requestContext = new Mock<RequestContext<TableMetadataResult>>();
-            requestContext.Setup(x => x.SendResult(It.IsAny<TableMetadataResult>()));
+            var efv = new EventFlowValidator<TableMetadataResult>()
+                .AddResultValidation(Assert.NotNull)
+                .Complete();
 
             var metadataParmas = new TableMetadataParams
             {
@@ -141,9 +142,8 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Metadata
                 ObjectName = "all_objects"
             };
 
-            MetadataService.HandleGetViewRequest(metadataParmas, requestContext.Object);
-
-            requestContext.VerifyAll();
+            MetadataService.HandleGetViewRequest(metadataParmas, efv.Object);
+            efv.Validate();
         }
 
         [Fact]
@@ -211,8 +211,10 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Metadata
             var testDb = await SqlTestDb.CreateNewAsync(TestServerType.OnPrem, false, null, query, "MetadataTests");
             try
             {
-                var requestContext = new Mock<RequestContext<MetadataQueryResult>>();
-                requestContext.Setup(x => x.SendResult(It.IsAny<MetadataQueryResult>()));
+                var efv = new EventFlowValidator<MetadataQueryResult>()
+                    .AddResultValidation(r => Assert.True(VerifyResult(r, expectedMetadataList)))
+                    .Complete();
+                
                 ConnectionService connectionService = LiveConnectionHelper.GetLiveTestConnectionService();
                 using (SelfCleaningTempFile queryTempFile = new SelfCleaningTempFile())
                 {
@@ -223,15 +225,16 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Metadata
                     service.HandleMetadataListRequest(new MetadataQueryParams
                     {
                         OwnerUri = queryTempFile.FilePath
-                    }, requestContext.Object);
+                    }, efv.Object);
                     Thread.Sleep(2000);
                     await service.MetadataListTask;
-
-                    requestContext.Verify(x => x.SendResult(It.Is<MetadataQueryResult>(r => VerifyResult(r, expectedMetadataList))));
+                    
                     connectionService.Disconnect(new ServiceLayer.Connection.Contracts.DisconnectParams
                     {
                         OwnerUri = queryTempFile.FilePath
                     });
+                    
+                    efv.Validate();
                 }
             }
             finally

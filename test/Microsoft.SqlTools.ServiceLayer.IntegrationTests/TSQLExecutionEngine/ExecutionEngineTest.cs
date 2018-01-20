@@ -41,13 +41,13 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.TSQLExecutionEngine
         {
             expResultCounts = new List<int>();
             expErrorMessage = new List<string>();
-            connection = SetUpConnection("test");
+            connection = SetUpConnection();
         }
 
         // helper method to set up a Sql Connection to a database
-        private SqlConnection SetUpConnection(string name)
+        private SqlConnection SetUpConnection()
         {
-            SqlTestDb testDb = SqlTestDb.CreateNew(TestServerType.OnPrem, false, name);
+            SqlTestDb testDb = SqlTestDb.CreateNew(TestServerType.OnPrem, false);
             ConnectionInfo connInfo = LiveConnectionHelper.InitLiveConnectionInfoForDefinition(testDb.DatabaseName);
             string connectionString = ConnectionService.BuildConnectionString(connInfo.ConnectionDetails);
             SqlConnection resultConnection = new SqlConnection(connectionString);
@@ -646,8 +646,8 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.TSQLExecutionEngine
             conditions.IsParseOnly = false;
             conditions.IsHaltOnError = false;
 
-            SqlConnection connection2 = SetUpConnection("test4");
-            SqlConnection connection3 = SetUpConnection("test5");
+            SqlConnection connection2 = SetUpConnection();
+            SqlConnection connection3 = SetUpConnection();
 
             TestExecutor executor1 = new TestExecutor(sqlStatement[0], connection, conditions, true);
             executor1.CancelTimeOut = 2000;

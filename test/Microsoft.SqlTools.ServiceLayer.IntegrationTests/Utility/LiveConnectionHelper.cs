@@ -100,13 +100,11 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility
                 ConnectParams connectParams = TestServiceProvider.Instance.ConnectionProfileService.GetConnectionParameters(TestServerType.OnPrem, databaseName);
                 string ownerUri = queryTempFile.FilePath;
                 var connectionService = GetLiveTestConnectionService();
-                var connectionResult =
-                    connectionService
-                    .Connect(new ConnectParams
-                    {
-                        OwnerUri = ownerUri,
-                        Connection = connectParams.Connection
-                    });
+                var connectionResult = connectionService.Connect(new ConnectParams
+                {
+                    OwnerUri = ownerUri,
+                    Connection = connectParams.Connection
+                });
 
                 connectionResult.Wait();
 

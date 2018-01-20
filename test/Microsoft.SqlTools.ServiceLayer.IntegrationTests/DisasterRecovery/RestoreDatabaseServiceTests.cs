@@ -28,7 +28,6 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.DisasterRecovery
 {
     public class RestoreDatabaseServiceTests : ServiceTestBase
     {
-        private ConnectionService _connectService = TestServiceProvider.Instance.ConnectionService;
         private DisasterRecoveryService service;
         private string fullBackupFilePath;
         private string[] backupFilesToRecoverDatabase;

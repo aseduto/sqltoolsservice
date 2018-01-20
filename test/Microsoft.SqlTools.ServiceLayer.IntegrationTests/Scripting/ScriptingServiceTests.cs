@@ -13,6 +13,7 @@ using Microsoft.SqlTools.ServiceLayer.IntegrationTests.Utility;
 using Microsoft.SqlTools.ServiceLayer.Scripting;
 using Microsoft.SqlTools.ServiceLayer.Scripting.Contracts;
 using Microsoft.SqlTools.ServiceLayer.Test.Common;
+using Microsoft.SqlTools.ServiceLayer.Test.Common.RequestContextMocking;
 using Microsoft.SqlTools.ServiceLayer.Workspace.Contracts;
 using Moq;
 using Xunit;
@@ -50,10 +51,10 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
             return result;
         }
 
-        private async Task<Mock<RequestContext<ScriptingResult>>> SendAndValidateScriptRequest(bool isSelectScript)
+        private Mock<RequestContext<ScriptingResult>> SendAndValidateScriptRequest(bool isSelectScript)
         {
             var result = GetLiveAutoCompleteTestObjects();
-            var requestContext = new Mock<RequestContext<ScriptingResult>>();
+            var requestContext = new Mock<RequestContext<ScriptingResult>>(null, null);
             requestContext.Setup(x => x.SendResult(It.IsAny<ScriptingResult>()));
 
             var scriptingParams = new ScriptingParams
@@ -69,7 +70,6 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
             }
             ScriptingService service = new ScriptingService();
             service.HandleScriptExecuteRequest(scriptingParams, requestContext.Object);
-
             return requestContext;
         }
 
@@ -77,12 +77,13 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
         /// Verify the script object request
         /// </summary>
         [Fact]
-        public async void ScriptingScript()
+        public void ScriptingScript()
         {
+            // TODO: Verify that this is actually testing something
             foreach (string obj in objects)
             {
-                Assert.NotNull(await SendAndValidateScriptRequest(false));
-                Assert.NotNull(await SendAndValidateScriptRequest(true));
+                Assert.NotNull(SendAndValidateScriptRequest(false));
+                Assert.NotNull(SendAndValidateScriptRequest(true));
             }
         }
 
@@ -289,8 +290,9 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
             var testDb = await SqlTestDb.CreateNewAsync(TestServerType.OnPrem, false, null, query, "ScriptingTests");
             try
             {
-                var requestContext = new Mock<RequestContext<ScriptingResult>>();
+                var requestContext = new Mock<RequestContext<ScriptingResult>>(null, null);
                 requestContext.Setup(x => x.SendResult(It.IsAny<ScriptingResult>()));
+                
                 ConnectionService connectionService = LiveConnectionHelper.GetLiveTestConnectionService();
                 using (SelfCleaningTempFile queryTempFile = new SelfCleaningTempFile())
                 {
@@ -331,6 +333,8 @@ namespace Microsoft.SqlTools.ServiceLayer.IntegrationTests.Scripting
                     {
                         OwnerUri = queryTempFile.FilePath
                     });
+                    
+                    
                 }
             }
             finally
